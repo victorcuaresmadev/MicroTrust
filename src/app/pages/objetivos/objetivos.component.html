@@ -1,0 +1,33 @@
+<div class="objetivos-container">
+  <header class="page-header">
+    <h1>{{ title }}</h1>
+    <p class="subtitle">Nuestros principios y metas como plataforma de microcréditos descentralizados</p>
+  </header>
+  
+  <section class="main-objectives">
+    <h2>Objetivos Principales</h2>
+    <div class="objectives-grid">
+      <div class="objective-card" *ngFor="let objective of mainObjectives">
+        <h3>{{ objective.title }}</h3>
+        <p>{{ objective.description }}</p>
+      </div>
+    </div>
+  </section>
+  
+  <section class="long-term-goals">
+    <h2>Metas a Largo Plazo</h2>
+    <ul class="goals-list">
+      <li *ngFor="let goal of longTermGoals" class="goal-item">
+        {{ goal }}
+      </li>
+    </ul>
+  </section>
+  
+  <section class="vision">
+    <h2>Nuestra Visión</h2>
+    <div class="vision-content">
+      <p>Visualizamos un futuro donde cualquier persona, independientemente de su situación financiera o geográfica, pueda acceder a créditos justos y transparentes. Queremos revolucionar la industria de los microcréditos utilizando la tecnología blockchain para crear un sistema más inclusivo, seguro y eficiente.</p>
+      <p>Creemos que el acceso al crédito es un derecho fundamental que puede impulsar el desarrollo económico individual y comunitario. Nuestra plataforma busca eliminar las barreras tradicionales y proporcionar oportunidades financieras a quienes más lo necesitan.</p>
+    </div>
+  </section>
+</div>

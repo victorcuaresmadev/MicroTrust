@@ -1,0 +1,160 @@
+<div class="admin-container">
+  <header class="page-header">
+    <h1>Panel de Administración</h1>
+    <p class="subtitle">Gestión de solicitudes de microcréditos</p>
+  </header>
+  
+  <!-- Mensaje de carga -->
+  <div *ngIf="isLoading" class="loading">
+    <p><i class="fas fa-spinner fa-spin"></i> Cargando panel de administración...</p>
+  </div>
+  
+  <!-- Mensaje de error -->
+  <div *ngIf="error && !isLoading" class="error-message">
+    <h3><i class="fas fa-exclamation-triangle"></i> Acceso denegado</h3>
+    <p>{{ error }}</p>
+    <button routerLink="/" class="btn-primary">
+      <i class="fas fa-home"></i> Volver a inicio
+    </button>
+  </div>
+  
+  <!-- Panel de administración -->
+  <div *ngIf="!isLoading && account && isAdmin && !error" class="admin-content">
+    <div class="admin-header">
+      <div class="admin-info">
+        <h2>Solicitudes de Préstamo</h2>
+        <p class="admin-address">Administrador: {{ account | slice:0:6 }}...{{ account | slice:-4 }}</p>
+      </div>
+      <div class="admin-actions">
+        <button routerLink="/" class="btn-secondary">
+          <i class="fas fa-home"></i> Volver a inicio
+        </button>
+      </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filters">
+      <div class="filter-group">
+        <label for="statusFilter">Filtrar por estado:</label>
+        <select id="statusFilter" [(ngModel)]="filterStatus" (change)="applyFilter()">
+          <option value="all">Todas las solicitudes</option>
+          <option value="pending">Pendientes</option>
+          <option value="approved">Aprobadas</option>
+          <option value="rejected">Rechazadas</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Lista de préstamos -->
+    <div *ngIf="filteredLoans.length === 0" class="no-pending-loans">
+      <i class="fas fa-check-circle fa-3x"></i>
+      <h3>No hay solicitudes con el filtro seleccionado</h3>
+      <p>Cambia el filtro para ver más solicitudes</p>
+    </div>
+    
+    <div *ngIf="filteredLoans.length > 0" class="pending-loans-list">
+      <div class="loan-card" *ngFor="let loan of filteredLoans">
+        <div class="loan-header">
+          <div class="loan-id">ID: {{ loan.id }}</div>
+          <div class="loan-status" [ngClass]="getStatusClass(loan.status)">
+            {{ getStatusLabel(loan.status) }}
+          </div>
+        </div>
+        
+        <div class="loan-details">
+          <div class="detail-row">
+            <span class="label">Solicitante:</span>
+            <span class="value">{{ loan.borrowerName }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Dirección:</span>
+            <span class="value wallet-address">{{ loan.borrowerAddress | slice:0:6 }}...{{ loan.borrowerAddress | slice:-4 }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Monto solicitado:</span>
+            <span class="value">{{ loan.amount }} tokens</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Tasa de interés:</span>
+            <span class="value">{{ loan.interestRate * 100 }}%</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Red:</span>
+            <span class="value">{{ getNetworkLabel(loan.network) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Propósito:</span>
+            <span class="value">{{ getPurposeTypeLabel(loan.purposeType) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Descripción:</span>
+            <span class="value">{{ loan.purpose }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Fecha de solicitud:</span>
+            <span class="value">{{ loan.createdAt | date:'short' }}</span>
+          </div>
+          
+          <div class="detail-row" *ngIf="loan.approvedAt">
+            <span class="label">Fecha de aprobación:</span>
+            <span class="value">{{ loan.approvedAt | date:'short' }}</span>
+          </div>
+        </div>
+        
+        <div class="loan-actions" *ngIf="loan.status === 'pending'">
+          <button (click)="approveLoan(loan)" class="btn-approve">
+            <i class="fas fa-check"></i> Aprobar
+          </button>
+          <button (click)="setLoanToReject(loan)" class="btn-reject" data-toggle="modal" data-target="#rejectModal">
+            <i class="fas fa-times"></i> Rechazar
+          </button>
+        </div>
+        
+        <div class="loan-actions" *ngIf="loan.status === 'approved' && loan.contractUrl">
+          <button (click)="viewContract(loan)" class="btn-contract">
+            <i class="fas fa-file-pdf"></i> Ver Contrato
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal para rechazar préstamo -->
+  <div class="modal" *ngIf="loanToReject" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Rechazar Solicitud de Préstamo</h5>
+          <button type="button" class="btn-close" (click)="cancelReject()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro que deseas rechazar la solicitud de préstamo <strong>{{ loanToReject.id }}</strong>?</p>
+          <div class="form-group">
+            <label for="rejectionReason">Motivo del rechazo:</label>
+            <textarea 
+              id="rejectionReason" 
+              [(ngModel)]="rejectionReason" 
+              placeholder="Especifica el motivo por el cual se rechaza esta solicitud"
+              rows="4"
+              required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="cancelReject()">
+            <i class="fas fa-times"></i> Cancelar
+          </button>
+          <button type="button" class="btn-reject" (click)="rejectLoan()" [disabled]="!rejectionReason">
+            <i class="fas fa-ban"></i> Rechazar Préstamo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

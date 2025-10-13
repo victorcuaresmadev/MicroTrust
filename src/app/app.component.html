@@ -1,0 +1,25 @@
+<div class="card">
+  <h1>{{ title }}</h1>
+
+  <div *ngIf="!account">
+    <p>No conectado.</p>
+    <button (click)="connect()">Conectar MetaMask</button>
+  </div>
+
+  <div *ngIf="account">
+    <p>Cuenta: {{ account }}</p>
+    <p>ChainId: {{ chainId }}</p>
+    <button (click)="sign()">Firmar mensaje de prueba</button>
+    <button (click)="disconnect()">Desconectar (local)</button>
+  </div>
+
+  <div *ngIf="error" style="color: red;">
+    Error: {{ error }}
+  </div>
+</div>
+
+<app-navbar></app-navbar>
+<app-notification></app-notification>
+<div class="main-content">
+  <router-outlet></router-outlet>
+</div>

@@ -1,0 +1,96 @@
+<div class="home-container">
+  <header class="hero">
+    <h1>{{ title }}</h1>
+    <p class="subtitle">{{ subtitle }}</p>
+    <p class="tagline">La confianza al alcance de tu wallet</p>
+    
+    <!-- Pantalla de login unificada -->
+    <div class="login-section" *ngIf="!account && !isLoading">
+      <div class="login-card">
+        <h2>Bienvenido a MicroTrust</h2>
+        <p class="login-description">Conecta tu wallet MetaMask para acceder a la plataforma</p>
+        
+        <button (click)="connect()" class="btn-primary btn-login">
+          <i class="fab fa-ethereum"></i>
+          Conectar con MetaMask
+        </button>
+        
+        <p class="login-info">
+          <i class="fas fa-info-circle"></i>
+          Después de conectar, serás redirigido automáticamente según tu rol
+        </p>
+      </div>
+    </div>
+    
+    <!-- Pantalla de carga -->
+    <div class="loading-section" *ngIf="isLoading">
+      <div class="loading-card">
+        <i class="fas fa-spinner fa-spin fa-3x"></i>
+        <p>Conectando con MetaMask...</p>
+      </div>
+    </div>
+    
+    <!-- Pantalla después de login para clientes -->
+    <div class="post-login-section client-view" *ngIf="account && !isAdmin">
+      <div class="welcome-card">
+        <h2>Panel de Cliente</h2>
+        <p class="user-role client">Cliente</p>
+        <p class="welcome-text">Dirección: {{ account | slice:0:6 }}...{{ account | slice:-4 }}</p>
+        
+        <div class="client-actions">
+          <button routerLink="/solicitar-prestamo" class="btn-primary btn-loan">
+            <i class="fas fa-file-invoice-dollar"></i>
+            Solicitar Préstamo
+          </button>
+          
+          <button routerLink="/mis-prestamos" class="btn-secondary btn-my-loans">
+            <i class="fas fa-list"></i>
+            Mis Préstamos
+          </button>
+        </div>
+      </div>
+      
+      <button (click)="disconnect()" class="btn-outline btn-disconnect">
+        <i class="fas fa-sign-out-alt"></i>
+        Desconectar Wallet
+      </button>
+    </div>
+  </header>
+  
+  <!-- Información de la empresa (visible solo para clientes o antes de login) -->
+  <section class="company-info" *ngIf="(!account || !isAdmin) && !isLoading">
+    <h2>¿Por qué MicroTrust?</h2>
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of features">
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.description }}</p>
+      </div>
+    </div>
+  </section>
+  
+  <section class="how-it-works" *ngIf="(!account || !isAdmin) && !isLoading">
+    <h2>¿Cómo funciona?</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Conecta tu Wallet</h3>
+        <p>Conecta tu MetaMask u otra wallet compatible</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Solicita tu Préstamo</h3>
+        <p>Completa el formulario con tus datos y necesidades</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Espera Aprobación</h3>
+        <p>Nuestro equipo revisará tu solicitud en 24 horas</p>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <h3>Recibe tu Crédito</h3>
+        <p>Una vez aprobado, recibe los fondos en tu wallet</p>
+      </div>
+    </div>
+  </section>
+</div>

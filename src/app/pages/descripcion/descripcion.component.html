@@ -1,0 +1,24 @@
+<div class="descripcion-container">
+  <header class="page-header">
+    <h1>{{ title }}</h1>
+  </header>
+  
+  <div class="content-sections">
+    <div class="content-section" *ngFor="let section of sections">
+      <h2>{{ section.title }}</h2>
+      <p>{{ section.content }}</p>
+    </div>
+  </div>
+  
+  <div class="additional-info">
+    <h2>Características Clave</h2>
+    <ul>
+      <li>Proceso de solicitud 100% digital</li>
+      <li>Préstamos en múltiples redes de prueba (Goerli, Sepolia, etc.)</li>
+      <li>Tasas de interés competitivas basadas en el propósito del préstamo</li>
+      <li>Contratos inteligentes que garantizan transparencia</li>
+      <li>Proceso de aprobación en 24 horas</li>
+      <li>Generación automática de contratos con código QR</li>
+    </ul>
+  </div>
+</div>

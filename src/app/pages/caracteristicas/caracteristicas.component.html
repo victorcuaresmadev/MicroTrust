@@ -1,0 +1,61 @@
+<div class="caracteristicas-container">
+  <header class="page-header">
+    <h1>{{ title }}</h1>
+    <p class="subtitle">Todas las funcionalidades que hacen de MicroTrust una plataforma única</p>
+  </header>
+  
+  <section class="technical-features">
+    <h2>Características Técnicas</h2>
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of technicalFeatures">
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.description }}</p>
+      </div>
+    </div>
+  </section>
+  
+  <section class="user-features">
+    <h2>Características para Usuarios</h2>
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of userFeatures">
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.description }}</p>
+      </div>
+    </div>
+  </section>
+  
+  <section class="technology-stack">
+    <h2>Tecnología Utilizada</h2>
+    <div class="tech-stack-content">
+      <div class="tech-category">
+        <h3>Frontend</h3>
+        <ul>
+          <li>Angular 17</li>
+          <li>TypeScript</li>
+          <li>HTML5 & CSS3</li>
+          <li>Responsive Design</li>
+        </ul>
+      </div>
+      
+      <div class="tech-category">
+        <h3>Blockchain</h3>
+        <ul>
+          <li>Ethereum</li>
+          <li>MetaMask Integration</li>
+          <li>Smart Contracts</li>
+          <li>Web3.js</li>
+        </ul>
+      </div>
+      
+      <div class="tech-category">
+        <h3>Backend</h3>
+        <ul>
+          <li>Node.js</li>
+          <li>Express.js</li>
+          <li>MongoDB</li>
+          <li>RESTful APIs</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>

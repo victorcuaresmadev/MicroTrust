@@ -1,0 +1,53 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <h1 class="nav-title">MicroTrust</h1>
+    
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a routerLink="/" class="nav-link">Inicio</a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/descripcion" class="nav-link">Descripción</a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/objetivos" class="nav-link">Objetivos</a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/beneficios" class="nav-link">Beneficios</a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/caracteristicas" class="nav-link">Características</a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/equipo" class="nav-link">Equipo</a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/soporte" class="nav-link">Soporte</a>
+      </li>
+      
+      <!-- Menú para clientes -->
+      <li class="nav-item" *ngIf="account">
+        <a routerLink="/solicitar-prestamo" class="nav-link">Solicitar Préstamo</a>
+      </li>
+      <li class="nav-item" *ngIf="account">
+        <a routerLink="/mis-prestamos" class="nav-link">Mis Préstamos</a>
+      </li>
+      
+      <!-- Menú para administradores -->
+      <li class="nav-item" *ngIf="isAdmin">
+        <a routerLink="/admin" class="nav-link">Panel Admin</a>
+      </li>
+    </ul>
+    
+    <div class="nav-auth">
+      <div *ngIf="!account">
+        <button (click)="connect()" class="btn-connect">Conectar MetaMask</button>
+      </div>
+      
+      <div *ngIf="account" class="account-info">
+        <span class="account-address">{{ account | slice:0:6 }}...{{ account | slice:-4 }}</span>
+        <button (click)="disconnect()" class="btn-disconnect">Desconectar</button>
+      </div>
+    </div>
+  </div>
+</nav>

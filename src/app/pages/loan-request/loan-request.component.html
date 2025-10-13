@@ -1,0 +1,109 @@
+<div class="loan-request-container">
+  <header class="page-header">
+    <h1>Solicitar Préstamo</h1>
+    <p class="subtitle">Completa el formulario para solicitar tu microcrédito</p>
+  </header>
+  
+  <div *ngIf="!account" class="connect-wallet">
+    <p>Para solicitar un préstamo, primero debes conectar tu wallet.</p>
+    <button (click)="connect()" class="btn-primary">Conectar MetaMask</button>
+  </div>
+  
+  <div *ngIf="account" class="loan-form-container">
+    <div class="form-section">
+      <h2>Información del Solicitante</h2>
+      <div class="form-group">
+        <label for="borrowerName">Nombre Completo:</label>
+        <input 
+          type="text" 
+          id="borrowerName" 
+          [(ngModel)]="loanForm.borrowerName" 
+          placeholder="Ingresa tu nombre completo"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Dirección de Wallet:</label>
+        <div class="wallet-address">{{ account }}</div>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h2>Detalles del Préstamo</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="network">Red Blockchain:</label>
+          <select 
+            id="network" 
+            [(ngModel)]="loanForm.network" 
+            (change)="onNetworkChange()"
+            required>
+            <option *ngFor="let network of networks" [value]="network.value">
+              {{ network.name }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Límite de Préstamo:</label>
+          <div class="loan-limit">Hasta {{ loanLimit }} tokens</div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="amount">Monto Solicitado:</label>
+        <input 
+          type="number" 
+          id="amount" 
+          [(ngModel)]="loanForm.amount" 
+          (input)="onAmountChange()"
+          min="0"
+          [max]="loanLimit"
+          placeholder="Ingresa el monto"
+          required>
+        <div class="amount-info" *ngIf="loanForm.amount">
+          Monto total a pagar: {{ totalAmount | number:'1.2-2' }} tokens (incluye intereses)
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="purposeType">Propósito del Préstamo:</label>
+        <select 
+          id="purposeType" 
+          [(ngModel)]="loanForm.purposeType" 
+          (change)="onPurposeTypeChange()"
+          required>
+          <option *ngFor="let type of purposeTypes" [value]="type.value">
+            {{ type.label }}
+          </option>
+        </select>
+        <div class="interest-info">
+          Tasa de interés: {{ interestRate * 100 }}%
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="purpose">Descripción Detallada:</label>
+        <textarea 
+          id="purpose" 
+          [(ngModel)]="loanForm.purpose" 
+          placeholder="Describe detalladamente para qué necesitas el préstamo"
+          rows="4"
+          required></textarea>
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button 
+        (click)="submitLoanRequest()" 
+        class="btn-submit"
+        [disabled]="!loanForm.borrowerName || !loanForm.amount || loanForm.amount <= 0 || !loanForm.purpose">
+        Solicitar Préstamo
+      </button>
+    </div>
+  </div>
+  
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+</div>

@@ -1,0 +1,85 @@
+<div class="my-loans-container">
+  <header class="page-header">
+    <h1>Mis Préstamos</h1>
+    <p class="subtitle">Historial de tus solicitudes de microcréditos</p>
+  </header>
+  
+  <div *ngIf="!account" class="connect-wallet">
+    <p>Para ver tus préstamos, primero debes conectar tu wallet.</p>
+    <button (click)="loadAccountAndLoans()" class="btn-primary">Conectar MetaMask</button>
+  </div>
+  
+  <div *ngIf="account && loans.length === 0" class="no-loans">
+    <p>No tienes solicitudes de préstamos registradas.</p>
+    <button routerLink="/solicitar-prestamo" class="btn-primary">Solicitar Préstamo</button>
+  </div>
+  
+  <div *ngIf="account && loans.length > 0" class="loans-list">
+    <h2>Tus Solicitudes de Préstamo</h2>
+    
+    <div class="loan-card" *ngFor="let loan of loans">
+      <div class="loan-header">
+        <div class="loan-id">ID: {{ loan.id }}</div>
+        <div class="loan-status" [ngClass]="getStatusClass(loan.status)">
+          {{ getStatusLabel(loan.status) }}
+        </div>
+      </div>
+      
+      <div class="loan-details">
+        <div class="detail-row">
+          <span class="label">Monto solicitado:</span>
+          <span class="value">{{ loan.amount }} tokens</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="label">Tasa de interés:</span>
+          <span class="value">{{ loan.interestRate * 100 }}%</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="label">Red:</span>
+          <span class="value">{{ getNetworkLabel(loan.network) }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="label">Propósito:</span>
+          <span class="value">{{ getPurposeTypeLabel(loan.purposeType) }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="label">Descripción:</span>
+          <span class="value">{{ loan.purpose }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="label">Fecha de solicitud:</span>
+          <span class="value">{{ loan.createdAt | date:'short' }}</span>
+        </div>
+        
+        <div *ngIf="loan.approvedAt" class="detail-row">
+          <span class="label">Fecha de aprobación:</span>
+          <span class="value">{{ loan.approvedAt | date:'short' }}</span>
+        </div>
+      </div>
+      
+      <div class="loan-actions">
+        <button 
+          *ngIf="loan.status === 'approved' && loan.contractUrl" 
+          (click)="downloadContract(loan)" 
+          class="btn-download">
+          Descargar Contrato
+        </button>
+        <div *ngIf="loan.status === 'pending'" class="pending-message">
+          Estamos procesando tu solicitud. En 24 horas se reflejará en tu cuenta.
+        </div>
+        <div *ngIf="loan.status === 'rejected'" class="rejected-message">
+          Tu solicitud ha sido rechazada. Para más información, contacta con soporte.
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+</div>
