@@ -1,109 +1,265 @@
-<div class="loan-request-container">
-  <header class="page-header">
-    <h1>Solicitar Préstamo</h1>
-    <p class="subtitle">Completa el formulario para solicitar tu microcrédito</p>
-  </header>
-  
-  <div *ngIf="!account" class="connect-wallet">
-    <p>Para solicitar un préstamo, primero debes conectar tu wallet.</p>
-    <button (click)="connect()" class="btn-primary">Conectar MetaMask</button>
-  </div>
-  
-  <div *ngIf="account" class="loan-form-container">
-    <div class="form-section">
-      <h2>Información del Solicitante</h2>
-      <div class="form-group">
-        <label for="borrowerName">Nombre Completo:</label>
-        <input 
-          type="text" 
-          id="borrowerName" 
-          [(ngModel)]="loanForm.borrowerName" 
-          placeholder="Ingresa tu nombre completo"
-          required>
+<div class="loan-request-page">
+  <div class="container">
+    <div class="loan-request-container">
+      <!-- Header refinado -->
+      <div class="request-header">
+        <h1>Solicitar Préstamo</h1>
+        <p class="request-subtitle">Completa el formulario para solicitar un préstamo descentralizado</p>
       </div>
       
-      <div class="form-group">
-        <label>Dirección de Wallet:</label>
-        <div class="wallet-address">{{ account }}</div>
+      <!-- Conexión de wallet -->
+      <div class="card" *ngIf="!account">
+        <div class="card-header">
+          <h3 class="card-title">🔗 Conectar Wallet</h3>
+        </div>
+        <div class="card-body">
+          <p class="connection-text">Para solicitar un préstamo, necesitas conectar tu wallet de Ethereum.</p>
+          <div class="connection-info">
+            <div class="info-item">
+              <span class="info-icon">🛡️</span>
+              <span class="info-text">100% Seguro</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">⚡</span>
+              <span class="info-text">Transacciones Rápidas</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">🔒</span>
+              <span class="info-text">Privacidad Total</span>
+            </div>
+          </div>
+          <button 
+            class="btn btn-primary" 
+            (click)="connect()" 
+            [disabled]="isLoading">
+            <span class="btn-icon" *ngIf="!isLoading">🔗</span>
+            <span class="btn-icon" *ngIf="isLoading">⏳</span>
+            <span class="btn-text">{{ isLoading ? 'Conectando...' : 'Conectar con MetaMask' }}</span>
+          </button>
+          <div class="alert alert-danger" *ngIf="error">
+            <span class="alert-icon">⚠️</span>
+            {{ error }}
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <div class="form-section">
-      <h2>Detalles del Préstamo</h2>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="network">Red Blockchain:</label>
-          <select 
-            id="network" 
-            [(ngModel)]="loanForm.network" 
-            (change)="onNetworkChange()"
-            required>
-            <option *ngFor="let network of networks" [value]="network.value">
-              {{ network.name }}
-            </option>
-          </select>
+      
+      <!-- Información de cuenta conectada -->
+      <div class="card" *ngIf="account">
+        <div class="card-header">
+          <h3 class="card-title">✅ Wallet Conectada</h3>
+        </div>
+        <div class="card-body">
+          <div class="account-details">
+            <div class="detail-item">
+              <span class="detail-label">Dirección:</span>
+              <span class="detail-value">{{ account | slice:0:10 }}...{{ account | slice:-4 }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Red:</span>
+              <span class="detail-value">{{ chainId }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Estado:</span>
+              <span class="status-badge status-connected">Conectado</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Formulario de solicitud -->
+      <form *ngIf="account" (ngSubmit)="submitLoanRequest()">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📝 Información Personal</h3>
+          </div>
+          <div class="card-body">
+            <!-- Nombre del solicitante -->
+            <div class="form-group">
+              <label for="borrowerName">Nombre Completo *</label>
+              <input 
+                type="text" 
+                id="borrowerName" 
+                class="form-control" 
+                [(ngModel)]="loanForm.borrowerName" 
+                name="borrowerName"
+                placeholder="Ingresa tu nombre completo"
+                required>
+            </div>
+            
+            <!-- Monto del préstamo -->
+            <div class="form-group">
+              <label for="amount">Monto del Préstamo (ETH) *</label>
+              <div class="amount-container">
+                <input 
+                  type="number" 
+                  id="amount" 
+                  class="form-control amount-input" 
+                  [(ngModel)]="loanForm.amount" 
+                  name="amount"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  [max]="loanLimit"
+                  (input)="onAmountChange()"
+                  required>
+                <div class="amount-limit">
+                  <span class="limit-text">Límite: {{ loanLimit }} ETH</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Tipo de propósito -->
+            <div class="form-group">
+              <label>Tipo de Propósito *</label>
+              <div class="purpose-grid">
+                <div 
+                  *ngFor="let purposeType of purposeTypes" 
+                  class="purpose-card"
+                  [class.selected]="loanForm.purposeType === purposeType.value"
+                  [class.verified]="purposeType.value === 'student' && isStudentVerified"
+                  (click)="updatePurposeTypeWithType(purposeType)">
+                  <div class="purpose-icon">
+                    <span *ngIf="purposeType.value === 'student'">🎓</span>
+                    <span *ngIf="purposeType.value === 'business'">💼</span>
+                    <span *ngIf="purposeType.value === 'health'">❤️</span>
+                    <span *ngIf="purposeType.value === 'events'">🎉</span>
+                    <span *ngIf="purposeType.value === 'other'">🔧</span>
+                  </div>
+                  <div class="purpose-content">
+                    <div class="purpose-title">{{ purposeType.label }}</div>
+                    <div class="purpose-rate">{{ (purposeType.interestRate * 100).toFixed(0) }}% interés</div>
+                    <div class="verification-badge" *ngIf="purposeType.value === 'student' && isStudentVerified">
+                      ✓ Verificado
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Mensaje de verificación de estudiante -->
+            <div class="verification-status" *ngIf="loanForm.purposeType === 'student'">
+              <div class="verification-box verified" *ngIf="isStudentVerified">
+                <div class="verification-icon">✅</div>
+                <div class="verification-info">
+                  <h4>Estudiante Verificado</h4>
+                  <p>{{ studentVerificationData?.firstName }} {{ studentVerificationData?.lastName }}</p>
+                  <p class="small-text">{{ studentVerificationData?.email }}</p>
+                  <p class="small-text">{{ studentVerificationData?.universityName }} - {{ studentVerificationData?.careerProgram }}</p>
+                </div>
+              </div>
+              <div class="verification-box not-verified" *ngIf="!isStudentVerified">
+                <div class="verification-icon">⚠️</div>
+                <div class="verification-info">
+                  <h4>Verificación Requerida</h4>
+                  <p>Para acceder a la tasa de estudiante (12%), debes verificar tu condición.</p>
+                  <button 
+                    type="button" 
+                    class="btn btn-verify" 
+                    (click)="openStudentVerification()">
+                    🎓 Verificar Ahora
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Propósito detallado -->
+            <div class="form-group">
+              <label for="purpose">¿Por qué pides el préstamo? *</label>
+              <textarea 
+                id="purpose" 
+                class="form-control" 
+                [(ngModel)]="loanForm.purpose" 
+                name="purpose"
+                placeholder="Describe detalladamente para qué necesitas el préstamo..."
+                rows="4"
+                required></textarea>
+            </div>
+            
+            <!-- Duración del préstamo -->
+            <div class="form-group">
+              <label>Duración del Préstamo *</label>
+              <div class="duration-grid">
+                <div 
+                  *ngFor="let duration of loanDurations" 
+                  class="duration-card"
+                  [class.selected]="loanForm.loanDuration === duration.value"
+                  [class.has-discount]="duration.value === 7 || duration.value === 15"
+                  [class.recommended]="duration.value === 30"
+                  (click)="loanForm.loanDuration = duration.value; onDurationChange()">
+                  <span class="duration-value">{{ duration.label }}</span>
+                  <span class="duration-label discount" *ngIf="duration.value === 7">-2.5% descuento</span>
+                  <span class="duration-label discount" *ngIf="duration.value === 15">-3% descuento</span>
+                  <span class="duration-label normal" *ngIf="duration.value !== 7 && duration.value !== 15">Tasa normal</span>
+                </div>
+              </div>
+              <div class="discount-info" *ngIf="hasDiscount">
+                <span class="info-icon">💰</span>
+                <span class="info-text">¡Descuento del {{ discountPercentage }}% aplicado por pago rápido!</span>
+              </div>
+            </div>
+            
+            <!-- Red de blockchain -->
+            <div class="form-group">
+              <label>Red de Blockchain *</label>
+              <div class="network-grid">
+                <div 
+                  *ngFor="let network of networks" 
+                  class="network-card"
+                  [class.selected]="loanForm.network === network.value"
+                  (click)="updateNetworkWithConfig(network)">
+                  <div class="network-icon">⛓️</div>
+                  <div class="network-content">
+                    <div class="network-name">{{ network.name }}</div>
+                    <div class="network-limit">Límite: {{ network.limit }} ETH</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <div class="form-group">
-          <label>Límite de Préstamo:</label>
-          <div class="loan-limit">Hasta {{ loanLimit }} tokens</div>
+        <!-- Resumen del préstamo -->
+        <div class="card summary-card">
+          <div class="card-header">
+            <h3 class="card-title">📊 Resumen del Préstamo</h3>
+          </div>
+          <div class="card-body">
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">Monto Solicitado:</span>
+                <span class="summary-value">{{ loanForm.amount || 0 }} ETH</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Tasa de Interés Base:</span>
+                <span class="summary-value" [class.strikethrough]="hasDiscount">{{ (interestRate * 100).toFixed(1) }}%</span>
+              </div>
+              <div class="summary-item" *ngIf="hasDiscount">
+                <span class="summary-label">Tasa con Descuento:</span>
+                <span class="summary-value text-success">{{ (finalInterestRate * 100).toFixed(1) }}% (-{{ discountPercentage }}%)</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Monto Total a Pagar:</span>
+                <span class="summary-value text-accent">{{ totalAmount.toFixed(4) }} ETH</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Duración:</span>
+                <span class="summary-value">{{ loanForm.loanDuration }} días</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="amount">Monto Solicitado:</label>
-        <input 
-          type="number" 
-          id="amount" 
-          [(ngModel)]="loanForm.amount" 
-          (input)="onAmountChange()"
-          min="0"
-          [max]="loanLimit"
-          placeholder="Ingresa el monto"
-          required>
-        <div class="amount-info" *ngIf="loanForm.amount">
-          Monto total a pagar: {{ totalAmount | number:'1.2-2' }} tokens (incluye intereses)
+        
+        <!-- Botón de envío -->
+        <div class="submit-section">
+          <button 
+            type="submit" 
+            class="btn btn-success btn-large"
+            [disabled]="!loanForm.borrowerName || !loanForm.amount || !loanForm.purpose">
+            <span class="btn-icon">🚀</span>
+            <span class="btn-text">Enviar Solicitud</span>
+          </button>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="purposeType">Propósito del Préstamo:</label>
-        <select 
-          id="purposeType" 
-          [(ngModel)]="loanForm.purposeType" 
-          (change)="onPurposeTypeChange()"
-          required>
-          <option *ngFor="let type of purposeTypes" [value]="type.value">
-            {{ type.label }}
-          </option>
-        </select>
-        <div class="interest-info">
-          Tasa de interés: {{ interestRate * 100 }}%
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="purpose">Descripción Detallada:</label>
-        <textarea 
-          id="purpose" 
-          [(ngModel)]="loanForm.purpose" 
-          placeholder="Describe detalladamente para qué necesitas el préstamo"
-          rows="4"
-          required></textarea>
-      </div>
+      </form>
     </div>
-    
-    <div class="form-actions">
-      <button 
-        (click)="submitLoanRequest()" 
-        class="btn-submit"
-        [disabled]="!loanForm.borrowerName || !loanForm.amount || loanForm.amount <= 0 || !loanForm.purpose">
-        Solicitar Préstamo
-      </button>
-    </div>
-  </div>
-  
-  <div *ngIf="error" class="error-message">
-    {{ error }}
   </div>
 </div>

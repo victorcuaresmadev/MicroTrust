@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { ThemeService } from '../../services/theme/theme.service';
 import { WalletService } from '../../services/wallet.service';
 import { APP_CONSTANTS } from '../../constants/app.constants';
 
@@ -7,30 +9,42 @@ import { APP_CONSTANTS } from '../../constants/app.constants';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   account: string | null = null;
+  chainId: string | null = null;
   isAdmin: boolean = false;
   isAdminView: boolean = false;
 
-  constructor(private wallet: WalletService) {}
+  constructor(
+    public themeService: ThemeService,
+    private walletService: WalletService,
+    private router: Router
+  ) {}
 
-  async connect() {
-    try {
-      const acc = await this.wallet.connect();
-      this.account = acc;
-      this.isAdmin = APP_CONSTANTS.ADMIN_ADDRESSES.includes(acc);
-    } catch (e: any) {
-      console.error('Error connecting wallet:', e);
-    }
+  ngOnInit() {
+    this.checkConnection();
   }
 
-  disconnect() {
-    this.account = null;
-    this.isAdmin = false;
-    this.isAdminView = false;
+  async checkConnection() {
+    try {
+      const accounts = await this.walletService.getAccounts();
+      if (accounts && accounts.length > 0) {
+        this.account = accounts[0];
+        this.chainId = await this.walletService.getChainId();
+        this.isAdmin = APP_CONSTANTS.ADMIN_ADDRESSES.some(
+          adminAddr => adminAddr.toLowerCase() === this.account!.toLowerCase()
+        );
+      }
+    } catch (error) {
+      console.log('No hay conexión con MetaMask');
+    }
   }
 
   toggleAdminView() {
     this.isAdminView = !this.isAdminView;
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 }

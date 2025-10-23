@@ -1,0 +1,77 @@
+<div class="login-page">
+  <div class="login-container">
+    <!-- Header con toggle de tema -->
+    <div class="login-header">
+      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="themeService.isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+        <span class="theme-icon" [class.dark]="themeService.isDarkMode()">
+          {{ themeService.isDarkMode() ? '🌙' : '☀️' }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Logo y título -->
+    <div class="login-brand">
+      <h1 class="brand-title">MicroTrust</h1>
+      <p class="brand-subtitle">Blockchain Microcredits</p>
+    </div>
+
+    <!-- Card de login -->
+    <div class="login-card">
+      <div class="login-card-header">
+        <h2>Iniciar Sesión</h2>
+        <p>Conecta tu wallet para acceder a la plataforma</p>
+      </div>
+
+      <div class="login-card-body">
+        <!-- Información de seguridad -->
+        <div class="security-info">
+          <div class="security-item">
+            <span class="security-icon">🛡️</span>
+            <span class="security-text">100% Seguro</span>
+          </div>
+          <div class="security-item">
+            <span class="security-icon">🔒</span>
+            <span class="security-text">Privacidad Total</span>
+          </div>
+          <div class="security-item">
+            <span class="security-icon">⚡</span>
+            <span class="security-text">Transacciones Rápidas</span>
+          </div>
+        </div>
+
+        <!-- Botón de conexión -->
+        <button 
+          class="btn btn-primary btn-large connect-btn" 
+          (click)="connect()" 
+          [disabled]="isLoading">
+          <span class="btn-icon" *ngIf="!isLoading">🔗</span>
+          <span class="btn-icon loading" *ngIf="isLoading">⏳</span>
+          <span class="btn-text">{{ isLoading ? 'Conectando...' : 'Conectar con MetaMask' }}</span>
+        </button>
+
+        <!-- Error message -->
+        <div class="alert alert-danger" *ngIf="error">
+          <span class="alert-icon">⚠️</span>
+          {{ error }}
+        </div>
+
+        <!-- Información adicional -->
+        <div class="login-info">
+          <p class="info-text">
+            Al conectar tu wallet, aceptas nuestros términos de servicio y política de privacidad.
+          </p>
+          <div class="info-links">
+            <a href="#" class="info-link">Términos de Servicio</a>
+            <span class="separator">•</span>
+            <a href="#" class="info-link">Política de Privacidad</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>&copy; 2024 MicroTrust. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</div>

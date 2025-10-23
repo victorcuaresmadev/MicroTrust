@@ -1,85 +1,167 @@
-<div class="my-loans-container">
-  <header class="page-header">
-    <h1>Mis Préstamos</h1>
-    <p class="subtitle">Historial de tus solicitudes de microcréditos</p>
-  </header>
-  
-  <div *ngIf="!account" class="connect-wallet">
-    <p>Para ver tus préstamos, primero debes conectar tu wallet.</p>
-    <button (click)="loadAccountAndLoans()" class="btn-primary">Conectar MetaMask</button>
-  </div>
-  
-  <div *ngIf="account && loans.length === 0" class="no-loans">
-    <p>No tienes solicitudes de préstamos registradas.</p>
-    <button routerLink="/solicitar-prestamo" class="btn-primary">Solicitar Préstamo</button>
-  </div>
-  
-  <div *ngIf="account && loans.length > 0" class="loans-list">
-    <h2>Tus Solicitudes de Préstamo</h2>
-    
-    <div class="loan-card" *ngFor="let loan of loans">
-      <div class="loan-header">
-        <div class="loan-id">ID: {{ loan.id }}</div>
-        <div class="loan-status" [ngClass]="getStatusClass(loan.status)">
-          {{ getStatusLabel(loan.status) }}
-        </div>
+<div class="my-loans-page">
+  <div class="container">
+    <div class="my-loans-container">
+      <!-- Header -->
+      <div class="loans-header">
+        <h1>Mis Préstamos</h1>
+        <p class="loans-subtitle">Historial completo de tus solicitudes de préstamo</p>
       </div>
       
-      <div class="loan-details">
-        <div class="detail-row">
-          <span class="label">Monto solicitado:</span>
-          <span class="value">{{ loan.amount }} tokens</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Tasa de interés:</span>
-          <span class="value">{{ loan.interestRate * 100 }}%</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Red:</span>
-          <span class="value">{{ getNetworkLabel(loan.network) }}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Propósito:</span>
-          <span class="value">{{ getPurposeTypeLabel(loan.purposeType) }}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Descripción:</span>
-          <span class="value">{{ loan.purpose }}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Fecha de solicitud:</span>
-          <span class="value">{{ loan.createdAt | date:'short' }}</span>
-        </div>
-        
-        <div *ngIf="loan.approvedAt" class="detail-row">
-          <span class="label">Fecha de aprobación:</span>
-          <span class="value">{{ loan.approvedAt | date:'short' }}</span>
-        </div>
+      <!-- Mensaje de error -->
+      <div *ngIf="error" class="alert alert-danger">
+        <span class="alert-icon">⚠️</span>
+        {{ error }}
       </div>
       
-      <div class="loan-actions">
-        <button 
-          *ngIf="loan.status === 'approved' && loan.contractUrl" 
-          (click)="downloadContract(loan)" 
-          class="btn-download">
-          Descargar Contrato
+      <!-- Mensaje cuando no hay préstamos -->
+      <div *ngIf="!error && loans.length === 0" class="no-loans-message">
+        <div class="no-loans-icon">📄</div>
+        <h3>No tienes préstamos registrados</h3>
+        <p>Aún no has solicitado ningún préstamo. ¡Empieza ahora!</p>
+        <button routerLink="/solicitar-prestamo" class="btn btn-primary">
+          <span class="btn-icon">💰</span>
+          <span class="btn-text">Solicitar Préstamo</span>
         </button>
-        <div *ngIf="loan.status === 'pending'" class="pending-message">
-          Estamos procesando tu solicitud. En 24 horas se reflejará en tu cuenta.
-        </div>
-        <div *ngIf="loan.status === 'rejected'" class="rejected-message">
-          Tu solicitud ha sido rechazada. Para más información, contacta con soporte.
+      </div>
+      
+      <!-- Lista de préstamos -->
+      <div *ngIf="!error && loans.length > 0" class="loans-list">
+        <div 
+          *ngFor="let loan of loans" 
+          class="loan-card"
+          [class.selected]="selectedLoan?.id === loan.id"
+          (click)="selectLoan(loan)">
+          <div class="loan-header">
+            <div class="loan-id">
+              <span class="id-label">ID:</span>
+              <span class="id-value">{{ loan.id }}</span>
+            </div>
+            <div class="loan-status" [class]="getStatusClass(loan.status)">
+              {{ getStatusLabel(loan.status) }}
+            </div>
+          </div>
+          
+          <div class="loan-details">
+            <div class="detail-row">
+              <span class="label">Monto:</span>
+              <span class="value">{{ loan.amount }} ETH</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">Tasa de interés:</span>
+              <span class="value">{{ (loan.interestRate * 100).toFixed(1) }}%</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">Monto total a pagar:</span>
+              <span class="value">{{ (loan.amount + (loan.amount * loan.interestRate)).toFixed(4) }} ETH</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">Red:</span>
+              <span class="value">{{ getNetworkLabel(loan.network) }}</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">Propósito:</span>
+              <span class="value">{{ getPurposeTypeLabel(loan.purposeType) }}</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">Descripción:</span>
+              <span class="value">{{ loan.purpose }}</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">Fecha de solicitud:</span>
+              <span class="value">{{ loan.createdAt | date:'short' }}</span>
+            </div>
+            
+            <div *ngIf="loan.approvedAt" class="detail-row">
+              <span class="label">Fecha de aprobación:</span>
+              <span class="value">{{ loan.approvedAt | date:'short' }}</span>
+            </div>
+          </div>
+          
+          <div class="loan-actions">
+            <!-- Botón para ver transacciones -->
+            <button 
+              (click)="openTransactionViewer(loan); $event.stopPropagation()" 
+              class="btn-transaction-viewer"
+              title="Ver transacciones en {{ getNetworkLabel(loan.network) }}">
+              <i class="fas fa-eye"></i>
+              <span>Ver Transacciones</span>
+            </button>
+            
+            <button 
+              *ngIf="loan.status === 'approved'" 
+              (click)="generateAndPrintContract(loan); $event.stopPropagation()" 
+              class="btn-print"
+              title="Generar contrato e imprimir">
+              <i class="fas fa-print"></i>
+              <span>Imprimir Contrato</span>
+            </button>
+            
+            <button 
+              *ngIf="loan.status === 'approved'" 
+              (click)="downloadContract(loan); $event.stopPropagation()" 
+              class="btn-download"
+              title="Descargar contrato como HTML">
+              <i class="fas fa-download"></i>
+              <span>Descargar</span>
+            </button>
+            
+            <button 
+              *ngIf="loan.status === 'approved'" 
+              (click)="viewContract(loan); $event.stopPropagation()" 
+              class="btn-view"
+              title="Ver contrato en nueva pestaña">
+              <i class="fas fa-eye"></i>
+              <span>Ver Contrato</span>
+            </button>
+            
+            <button 
+              *ngIf="loan.status === 'approved'" 
+              (click)="payLoan(loan); $event.stopPropagation()" 
+              class="btn-pay"
+              [disabled]="isPaying">
+              <i class="fas fa-credit-card"></i>
+              <span *ngIf="!isPaying">Pagar Préstamo</span>
+              <span *ngIf="isPaying">Procesando...</span>
+            </button>
+            
+            <div *ngIf="loan.status === 'pending'" class="pending-message">
+              Estamos procesando tu solicitud. En 24 horas se reflejará en tu cuenta.
+            </div>
+            
+            <div *ngIf="loan.status === 'paid'" class="paid-message">
+              ¡Préstamo pagado exitosamente!
+            </div>
+            
+            <div *ngIf="loan.status === 'rejected'" class="rejected-container">
+              <div class="rejected-message">
+                <i class="fas fa-exclamation-circle"></i>
+                Tu solicitud ha sido rechazada.
+              </div>
+              <button 
+                (click)="viewRejectionReason(loan); $event.stopPropagation()" 
+                class="btn-rejection-reason"
+                title="Ver motivo del rechazo">
+                <i class="fas fa-eye"></i>
+                <span>Ver Motivo</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  
-  <div *ngIf="error" class="error-message">
-    {{ error }}
-  </div>
 </div>
+
+<!-- Transaction Viewer Modal -->
+<app-transaction-viewer 
+  *ngIf="transactionViewerLoan"
+  [loan]="transactionViewerLoan"
+  [isVisible]="showTransactionViewer"
+  (close)="closeTransactionViewer()">
+</app-transaction-viewer>

@@ -1,0 +1,84 @@
+<div class="admin-dashboard">
+  <div class="dashboard-header">
+    <h1>Panel de Administración</h1>
+    <p>Gestión de préstamos y configuración del sistema</p>
+  </div>
+
+  <div class="dashboard-content">
+    <!-- Información de la cuenta -->
+    <div class="account-card card-admin">
+      <h2>Información de Administrador</h2>
+      <div class="account-info">
+        <div class="info-item">
+          <span class="info-label">Dirección:</span>
+          <span class="info-value">{{ account | slice:0:18 }}...{{ account | slice:-4 }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Red:</span>
+          <span class="info-value">{{ getNetworkName(chainId!) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Estado:</span>
+          <span class="info-value status-connected">Conectado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats-section">
+      <h2>Estadísticas del Sistema</h2>
+      <div class="stats-grid">
+        <div class="stat-card card-admin">
+          <div class="stat-icon">📋</div>
+          <div class="stat-value">24</div>
+          <div class="stat-label">Solicitudes Pendientes</div>
+        </div>
+        <div class="stat-card card-admin">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">156</div>
+          <div class="stat-label">Préstamos Aprobados</div>
+        </div>
+        <div class="stat-card card-admin">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value">89.5 ETH</div>
+          <div class="stat-label">Total Desembolsado</div>
+        </div>
+        <div class="stat-card card-admin">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value">1,247</div>
+          <div class="stat-label">Usuarios Registrados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+      <h2>Acciones de Administración</h2>
+      <div class="actions-grid">
+        <a routerLink="/admin" class="action-card card-admin">
+          <div class="action-icon">📋</div>
+          <h3>Gestión de Préstamos</h3>
+          <p>Revisar y aprobar solicitudes de préstamos</p>
+        </a>
+        
+        <a href="#" class="action-card card-admin">
+          <div class="action-icon">📊</div>
+          <h3>Reportes</h3>
+          <p>Generar informes y estadísticas del sistema</p>
+        </a>
+        
+        <a href="#" class="action-card card-admin">
+          <div class="action-icon">⚙️</div>
+          <h3>Configuración</h3>
+          <p>Configurar parámetros del sistema</p>
+        </a>
+        
+        <a href="#" class="action-card card-admin">
+          <div class="action-icon">🔔</div>
+          <h3>Notificaciones</h3>
+          <p>Enviar notificaciones a usuarios</p>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

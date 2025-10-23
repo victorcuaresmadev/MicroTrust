@@ -13,4 +13,6 @@ export interface ContractData {
   createdAt: Date;
   approvedAt?: Date;
   qrCode: string;
+  events?: string; // Registro de eventos del sistema (transacciones, confirmaciones, etc.)
+  loanDuration?: number; // Duración del préstamo en días
 }

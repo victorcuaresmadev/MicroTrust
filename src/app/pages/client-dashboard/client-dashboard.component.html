@@ -1,0 +1,70 @@
+<div class="client-dashboard">
+  <div class="dashboard-header">
+    <h1>Panel de Cliente</h1>
+    <p>Bienvenido a MicroTrust Blockchain Microcredits</p>
+  </div>
+
+  <div class="dashboard-content">
+    <!-- Información de la cuenta -->
+    <div class="account-card card-gamer">
+      <h2>Información de Cuenta</h2>
+      <div class="account-info">
+        <div class="info-item">
+          <span class="info-label">Dirección:</span>
+          <span class="info-value">{{ account | slice:0:18 }}...{{ account | slice:-4 }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Red:</span>
+          <span class="info-value">{{ getNetworkName(chainId!) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Estado:</span>
+          <span class="info-value status-connected">Conectado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+      <h2>Acciones Rápidas</h2>
+      <div class="actions-grid">
+        <a routerLink="/client/solicitar-prestamo" class="action-card card-gamer">
+          <div class="action-icon">💰</div>
+          <h3>Solicitar Préstamo</h3>
+          <p>Completa el formulario para solicitar un nuevo préstamo</p>
+        </a>
+        
+        <a routerLink="/client/mis-prestamos" class="action-card card-gamer">
+          <div class="action-icon">📊</div>
+          <h3>Mis Préstamos</h3>
+          <p>Consulta el estado de tus préstamos solicitados</p>
+        </a>
+        
+        <a routerLink="/client/home" class="action-card card-gamer">
+          <div class="action-icon">🏠</div>
+          <h3>Inicio</h3>
+          <p>Regresa a la página principal de la plataforma</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- Información de la empresa -->
+    <div class="company-info">
+      <h2>¿Por qué MicroTrust?</h2>
+      <div class="features-grid">
+        <div class="feature-card card-gamer">
+          <h3>🔒 Seguridad</h3>
+          <p>Tecnología blockchain para transacciones seguras y transparentes</p>
+        </div>
+        <div class="feature-card card-gamer">
+          <h3>⚡ Rapidez</h3>
+          <p>Procesos ágiles con respuesta en menos de 24 horas</p>
+        </div>
+        <div class="feature-card card-gamer">
+          <h3>💰 Accesibilidad</h3>
+          <p>Préstamos accesibles para todos sin necesidad de garantías</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

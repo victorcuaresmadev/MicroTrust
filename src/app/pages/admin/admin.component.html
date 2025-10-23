@@ -1,63 +1,199 @@
 <div class="admin-container">
-  <header class="page-header">
-    <h1>Panel de Administración</h1>
-    <p class="subtitle">Gestión de solicitudes de microcréditos</p>
-  </header>
+  <!-- Header con estadísticas y acciones -->
+  <div class="admin-header">
+    <div class="header-content">
+      <h1>Panel de Administración</h1>
+      <p>Gestiona las solicitudes de préstamo y contratos</p>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="stats-container">
+      <div class="stat-card pending">
+        <div class="stat-value">{{ pendingCount }}</div>
+        <div class="stat-label">Pendientes</div>
+      </div>
+      <div class="stat-card approved">
+        <div class="stat-value">{{ approvedCount }}</div>
+        <div class="stat-label">Aprobados</div>
+      </div>
+      <div class="stat-card rejected">
+        <div class="stat-value">{{ rejectedCount }}</div>
+        <div class="stat-label">Rechazados</div>
+      </div>
+      <div class="stat-card paid">
+        <div class="stat-value">{{ paidCount }}</div>
+        <div class="stat-label">Pagados</div>
+      </div>
+    </div>
+    
+    <!-- Botones de acción -->
+    <div class="header-actions">
+      <button 
+        (click)="refreshLoans()" 
+        class="btn btn-refresh">
+        <span class="btn-icon">🔄</span>
+        Actualizar
+      </button>
+      
+      <button 
+        (click)="clearCache()" 
+        class="btn btn-warning">
+        <span class="btn-icon">🧹</span>
+        Limpiar Caché
+      </button>
+      
+      <button 
+        (click)="toggleTransactions()" 
+        class="btn btn-info">
+        <span class="btn-icon">👁️</span>
+        {{ showTransactions ? 'Ocultar Transacciones' : 'Ver Transacciones' }}
+      </button>
+      
+
+    </div>
+  </div>
   
-  <!-- Mensaje de carga -->
-  <div *ngIf="isLoading" class="loading">
-    <p><i class="fas fa-spinner fa-spin"></i> Cargando panel de administración...</p>
+  <!-- Selector de vista de transacciones -->
+  <div *ngIf="showTransactions" class="transaction-view-selector">
+    <div class="view-toggle">
+      <button 
+        (click)="setTransactionView('admin')" 
+        class="btn btn-toggle"
+        [class.active]="transactionView === 'admin'">
+        Transacciones Admin
+      </button>
+      <button 
+        (click)="setTransactionView('client')" 
+        class="btn btn-toggle"
+        [class.active]="transactionView === 'client'">
+        Transacciones Cliente
+      </button>
+    </div>
+    
+    <!-- Vista de transacciones -->
+    <div class="transactions-container">
+      <div *ngIf="transactionView === 'admin'" class="transaction-list">
+        <h3>Transacciones como Administrador</h3>
+        <p>Lista de transacciones realizadas por el administrador (aprobaciones, rechazos, etc.)</p>
+        <div class="transaction-item" *ngFor="let loan of approvedLoans">
+          <div class="transaction-details">
+            <span class="transaction-icon">✅</span>
+            <div class="transaction-info">
+              <div class="transaction-title">Préstamo aprobado #{{ loan.id | slice:0:8 }}...</div>
+              <div class="transaction-amount">{{ loan.amount }} ETH</div>
+              <div class="transaction-date">{{ loan.approvedAt | date:'short' }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="no-transactions" *ngIf="approvedLoans.length === 0">
+          <p>No hay transacciones de aprobación registradas</p>
+        </div>
+      </div>
+      
+      <div *ngIf="transactionView === 'client'" class="transaction-list">
+        <h3>Transacciones como Cliente</h3>
+        <p>Lista de préstamos solicitados por clientes</p>
+        <div class="transaction-item" *ngFor="let loan of allLoans">
+          <div class="transaction-details">
+            <span class="transaction-icon">📋</span>
+            <div class="transaction-info">
+              <div class="transaction-title">Solicitud de préstamo #{{ loan.id | slice:0:8 }}...</div>
+              <div class="transaction-amount">{{ loan.amount }} ETH</div>
+              <div class="transaction-date">{{ loan.createdAt | date:'short' }}</div>
+              <div class="transaction-status" [ngClass]="'status-' + loan.status">
+                {{ getStatusLabel(loan.status) }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="no-transactions" *ngIf="allLoans.length === 0">
+          <p>No hay solicitudes de préstamo registradas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Selector de red -->
+  <div class="network-selector">
+    <h3>Cambiar Red</h3>
+    <div class="network-buttons">
+      <button 
+        class="btn btn-network"
+        (click)="switchNetwork('holesky')">
+        Holešky
+      </button>
+      <button 
+        class="btn btn-network"
+        (click)="switchNetwork('sepolia')">
+        Sepolia
+      </button>
+      <button 
+        class="btn btn-network"
+        (click)="switchNetwork('goerli')">
+        Goerli
+      </button>
+    </div>
+  </div>
+  
+  <!-- Filtros -->
+  <div class="filters-container">
+    <div class="filter-group">
+      <label for="statusFilter">Filtrar por estado:</label>
+      <select 
+        id="statusFilter" 
+        [(ngModel)]="filterStatus" 
+        (change)="applyFilter()" 
+        class="form-control">
+        <option value="all">Todos los estados</option>
+        <option value="pending">Pendientes</option>
+        <option value="approved">Aprobados</option>
+        <option value="rejected">Rechazados</option>
+        <option value="paid">Pagados</option>
+        <option value="payment_pending">Pago Pendiente</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label for="searchInput">Buscar:</label>
+      <input 
+        type="text" 
+        id="searchInput" 
+        [(ngModel)]="searchTerm" 
+        (input)="applyFilter()" 
+        placeholder="ID, nombre, dirección..." 
+        class="form-control">
+    </div>
   </div>
   
   <!-- Mensaje de error -->
-  <div *ngIf="error && !isLoading" class="error-message">
-    <h3><i class="fas fa-exclamation-triangle"></i> Acceso denegado</h3>
-    <p>{{ error }}</p>
-    <button routerLink="/" class="btn-primary">
-      <i class="fas fa-home"></i> Volver a inicio
-    </button>
+  <div *ngIf="error" class="alert alert-danger">
+    <span class="alert-icon">⚠️</span>
+    {{ error }}
   </div>
   
-  <!-- Panel de administración -->
-  <div *ngIf="!isLoading && account && isAdmin && !error" class="admin-content">
-    <div class="admin-header">
-      <div class="admin-info">
-        <h2>Solicitudes de Préstamo</h2>
-        <p class="admin-address">Administrador: {{ account | slice:0:6 }}...{{ account | slice:-4 }}</p>
-      </div>
-      <div class="admin-actions">
-        <button routerLink="/" class="btn-secondary">
-          <i class="fas fa-home"></i> Volver a inicio
-        </button>
-      </div>
-    </div>
-    
-    <!-- Filtros -->
-    <div class="filters">
-      <div class="filter-group">
-        <label for="statusFilter">Filtrar por estado:</label>
-        <select id="statusFilter" [(ngModel)]="filterStatus" (change)="applyFilter()">
-          <option value="all">Todas las solicitudes</option>
-          <option value="pending">Pendientes</option>
-          <option value="approved">Aprobadas</option>
-          <option value="rejected">Rechazadas</option>
-        </select>
-      </div>
-    </div>
-    
-    <!-- Lista de préstamos -->
-    <div *ngIf="filteredLoans.length === 0" class="no-pending-loans">
-      <i class="fas fa-check-circle fa-3x"></i>
-      <h3>No hay solicitudes con el filtro seleccionado</h3>
-      <p>Cambia el filtro para ver más solicitudes</p>
-    </div>
-    
-    <div *ngIf="filteredLoans.length > 0" class="pending-loans-list">
-      <div class="loan-card" *ngFor="let loan of filteredLoans">
+  <!-- Pantalla de carga -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando préstamos...</p>
+  </div>
+  
+  <!-- Lista de préstamos -->
+  <div *ngIf="!isLoading && filteredLoans.length > 0" class="loans-container">
+    <div class="loans-grid">
+      <div 
+        *ngFor="let loan of filteredLoans" 
+        class="loan-card"
+        [class.selected]="selectedLoan?.id === loan.id">
         <div class="loan-header">
-          <div class="loan-id">ID: {{ loan.id }}</div>
-          <div class="loan-status" [ngClass]="getStatusClass(loan.status)">
-            {{ getStatusLabel(loan.status) }}
+          <div class="loan-info">
+            <div class="loan-id">ID: {{ loan.id }}</div>
+            <div class="loan-status" [ngClass]="'status-' + loan.status">
+              {{ getStatusLabel(loan.status) }}
+            </div>
+          </div>
+          <div class="loan-meta">
+            <div class="loan-amount">{{ loan.amount }} ETH</div>
+            <div class="loan-interest">{{ (loan.interestRate * 100).toFixed(1) }}%</div>
           </div>
         </div>
         
@@ -69,22 +205,7 @@
           
           <div class="detail-row">
             <span class="label">Dirección:</span>
-            <span class="value wallet-address">{{ loan.borrowerAddress | slice:0:6 }}...{{ loan.borrowerAddress | slice:-4 }}</span>
-          </div>
-          
-          <div class="detail-row">
-            <span class="label">Monto solicitado:</span>
-            <span class="value">{{ loan.amount }} tokens</span>
-          </div>
-          
-          <div class="detail-row">
-            <span class="label">Tasa de interés:</span>
-            <span class="value">{{ loan.interestRate * 100 }}%</span>
-          </div>
-          
-          <div class="detail-row">
-            <span class="label">Red:</span>
-            <span class="value">{{ getNetworkLabel(loan.network) }}</span>
+            <span class="value wallet-address">{{ loan.borrowerAddress | slice:0:10 }}...{{ loan.borrowerAddress | slice:-4 }}</span>
           </div>
           
           <div class="detail-row">
@@ -93,68 +214,205 @@
           </div>
           
           <div class="detail-row">
-            <span class="label">Descripción:</span>
-            <span class="value">{{ loan.purpose }}</span>
+            <span class="label">Red:</span>
+            <span class="value">{{ getNetworkLabel(loan.network) }}</span>
           </div>
           
           <div class="detail-row">
-            <span class="label">Fecha de solicitud:</span>
+            <span class="label">Fecha:</span>
             <span class="value">{{ loan.createdAt | date:'short' }}</span>
           </div>
-          
-          <div class="detail-row" *ngIf="loan.approvedAt">
-            <span class="label">Fecha de aprobación:</span>
-            <span class="value">{{ loan.approvedAt | date:'short' }}</span>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="loan-actions">
+          <!-- Botones para préstamos pendientes -->
+          <div *ngIf="loan.status === 'pending'" class="action-buttons">
+            <button 
+              (click)="approveLoan(loan)" 
+              class="btn btn-success"
+              [disabled]="isApproving">
+              <span *ngIf="!isApproving">✅ Aprobar</span>
+              <span *ngIf="isApproving">Procesando...</span>
+            </button>
+            <button 
+              (click)="showRejectConfirmation(loan)" 
+              class="btn btn-danger">
+              ❌ Rechazar
+            </button>
+            <button 
+              (click)="viewLoanDetails(loan)" 
+              class="btn btn-info">
+              👁️ Ver Detalles
+            </button>
+            <button 
+              (click)="openTransactionViewer(loan)" 
+              class="btn btn-transaction"
+              title="Ver transacciones en {{ getNetworkLabel(loan.network) }}">
+              🔍 Transacciones
+            </button>
           </div>
-        </div>
-        
-        <div class="loan-actions" *ngIf="loan.status === 'pending'">
-          <button (click)="approveLoan(loan)" class="btn-approve">
-            <i class="fas fa-check"></i> Aprobar
-          </button>
-          <button (click)="setLoanToReject(loan)" class="btn-reject" data-toggle="modal" data-target="#rejectModal">
-            <i class="fas fa-times"></i> Rechazar
-          </button>
-        </div>
-        
-        <div class="loan-actions" *ngIf="loan.status === 'approved' && loan.contractUrl">
-          <button (click)="viewContract(loan)" class="btn-contract">
-            <i class="fas fa-file-pdf"></i> Ver Contrato
-          </button>
+          
+          <!-- Botones para préstamos aprobados -->
+          <div *ngIf="loan.status === 'approved'" class="action-buttons">
+            <button 
+              (click)="generateAndPrintContract(loan)"
+              class="btn btn-primary"
+              title="Generar contrato e imprimir">
+              🖨️ Imprimir Contrato
+            </button>
+            <button 
+              (click)="downloadContract(loan)"
+              class="btn btn-secondary"
+              title="Descargar contrato como HTML">
+              💾 Descargar
+            </button>
+            <button 
+              (click)="viewContract(loan)"
+              class="btn btn-info"
+              title="Ver contrato en nueva pestaña">
+              👁️ Ver Contrato
+            </button>
+            <button 
+              (click)="viewLoanDetails(loan)" 
+              class="btn btn-info">
+              📋 Ver Detalles
+            </button>
+            <button 
+              (click)="openTransactionViewer(loan)" 
+              class="btn btn-transaction"
+              title="Ver transacciones en {{ getNetworkLabel(loan.network) }}">
+              🔍 Transacciones
+            </button>
+          </div>
+          
+          <!-- Mensajes para otros estados -->
+          <div *ngIf="loan.status === 'rejected'" class="status-message rejected">
+            Préstamo rechazado
+          </div>
+          
+          <div *ngIf="loan.status === 'paid'" class="status-message paid">
+            ✅ Préstamo pagado
+          </div>
+          
+          <div *ngIf="loan.status === 'payment_pending'" class="status-message pending">
+            ⏳ Pago pendiente
+          </div>
+          
+          <!-- Botón de verificación para todos los préstamos -->
+          <div *ngIf="!['pending', 'approved'].includes(loan.status)" class="action-buttons">
+            <button 
+              (click)="viewLoanDetails(loan)" 
+              class="btn btn-info">
+              👁️ Ver Detalles
+            </button>
+            <button 
+              (click)="openTransactionViewer(loan)" 
+              class="btn btn-transaction"
+              title="Ver transacciones en {{ getNetworkLabel(loan.network) }}">
+              🔍 Transacciones
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
   
-  <!-- Modal para rechazar préstamo -->
-  <div class="modal" *ngIf="loanToReject" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Rechazar Solicitud de Préstamo</h5>
-          <button type="button" class="btn-close" (click)="cancelReject()">&times;</button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro que deseas rechazar la solicitud de préstamo <strong>{{ loanToReject.id }}</strong>?</p>
-          <div class="form-group">
-            <label for="rejectionReason">Motivo del rechazo:</label>
-            <textarea 
-              id="rejectionReason" 
-              [(ngModel)]="rejectionReason" 
-              placeholder="Especifica el motivo por el cual se rechaza esta solicitud"
-              rows="4"
-              required></textarea>
+  <!-- Mensaje cuando no hay préstamos -->
+  <div *ngIf="!isLoading && filteredLoans.length === 0" class="no-loans-message">
+    <div class="no-loans-icon">📋</div>
+    <h3>No se encontraron préstamos</h3>
+    <p>No hay préstamos que coincidan con los filtros actuales.</p>
+  </div>
+  
+  <!-- Modal de detalles del préstamo -->
+  <div *ngIf="selectedLoan" class="modal" (click)="closeLoanDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalles del Préstamo #{{ selectedLoan.id | slice:0:8 }}...</h2>
+        <button class="close-btn" (click)="closeLoanDetails()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="loan-detail-section">
+          <h3>Información General</h3>
+          <div class="detail-row">
+            <span class="label">ID:</span>
+            <span class="value">{{ selectedLoan.id }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Estado:</span>
+            <span class="value status-{{ selectedLoan.status }}">{{ getStatusLabel(selectedLoan.status) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Fecha de Creación:</span>
+            <span class="value">{{ selectedLoan.createdAt | date:'medium' }}</span>
+          </div>
+          <div class="detail-row" *ngIf="selectedLoan.approvedAt">
+            <span class="label">Fecha de Aprobación:</span>
+            <span class="value">{{ selectedLoan.approvedAt | date:'medium' }}</span>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn-secondary" (click)="cancelReject()">
-            <i class="fas fa-times"></i> Cancelar
-          </button>
-          <button type="button" class="btn-reject" (click)="rejectLoan()" [disabled]="!rejectionReason">
-            <i class="fas fa-ban"></i> Rechazar Préstamo
-          </button>
+        
+        <div class="loan-detail-section">
+          <h3>Información del Solicitante</h3>
+          <div class="detail-row">
+            <span class="label">Nombre:</span>
+            <span class="value">{{ selectedLoan.borrowerName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Dirección:</span>
+            <span class="value wallet-address">{{ selectedLoan.borrowerAddress }}</span>
+          </div>
+        </div>
+        
+        <div class="loan-detail-section">
+          <h3>Detalles del Préstamo</h3>
+          <div class="detail-row">
+            <span class="label">Monto:</span>
+            <span class="value">{{ selectedLoan.amount }} ETH</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Tasa de Interés:</span>
+            <span class="value">{{ (selectedLoan.interestRate * 100).toFixed(1) }}%</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Propósito:</span>
+            <span class="value">{{ getPurposeTypeLabel(selectedLoan.purposeType) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Red:</span>
+            <span class="value">{{ getNetworkLabel(selectedLoan.network) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Duración:</span>
+            <span class="value">{{ selectedLoan.loanDuration || 'No especificada' }} días</span>
+          </div>
+        </div>
+        
+        <div class="loan-detail-section" *ngIf="selectedLoan.events">
+          <h3>Eventos Importantes</h3>
+          <div class="detail-row">
+            <span class="value">{{ selectedLoan.events }}</span>
+          </div>
+        </div>
+        
+        <div class="loan-detail-section" *ngIf="selectedLoan.contractUrl">
+          <h3>Contrato</h3>
+          <div class="detail-row">
+            <a [href]="selectedLoan.contractUrl" target="_blank" class="btn btn-primary">
+              Ver Contrato
+            </a>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Transaction Viewer Modal -->
+<app-transaction-viewer 
+  *ngIf="transactionViewerLoan"
+  [loan]="transactionViewerLoan"
+  [isVisible]="showTransactionViewer"
+  (close)="closeTransactionViewer()">
+</app-transaction-viewer>

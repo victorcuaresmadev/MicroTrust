@@ -1,0 +1,225 @@
+<div class="transaction-modal" *ngIf="isVisible" (click)="closeModal()">
+  <div class="modal-content card-gamer" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="holographic-text">
+        <i class="fas fa-eye"></i>
+        Transacciones del Préstamo
+      </h3>
+      <button class="btn-close" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="loan-info">
+      <div class="info-cards">
+        <div class="info-card">
+          <div class="card-icon">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Prestatario</span>
+            <span class="card-value">{{ loan.borrowerName }}</span>
+          </div>
+        </div>
+        
+        <div class="info-card address-card">
+          <div class="card-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Dirección</span>
+            <a [href]="getAddressUrl(loan.borrowerAddress)" 
+               target="_blank" 
+               class="card-value address-link">
+              {{ formatAddress(loan.borrowerAddress) }}
+              <i class="fas fa-external-link-alt link-icon"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="info-card amount-card">
+          <div class="card-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Monto</span>
+            <span class="card-value">{{ loan.amount }} ETH</span>
+          </div>
+        </div>
+        
+        <div class="info-card network-card">
+          <div class="card-icon">
+            <i class="fas fa-network-wired"></i>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Red</span>
+            <span class="card-value">{{ loan.network.toUpperCase() }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Cargando transacciones desde {{ loan.network }}...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !isLoading" class="error-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="loadTransactions()">
+          <i class="fas fa-redo"></i>
+          Reintentar
+        </button>
+        <button class="btn btn-secondary" (click)="loadDemoTransactions()">
+          <i class="fas fa-flask"></i>
+          Ver Demo
+        </button>
+        <button class="btn btn-info" (click)="testUrls()">
+          <i class="fas fa-link"></i>
+          Probar URLs
+        </button>
+      </div>
+
+      <!-- Transactions List -->
+      <div *ngIf="!isLoading && !error" class="transactions-container">
+        <div class="transactions-header">
+          <h4>
+            <i class="fas fa-list"></i>
+            Transacciones Relacionadas ({{ filteredTransactions.length }})
+          </h4>
+          <button class="btn btn-secondary btn-sm" (click)="loadTransactions()">
+            <i class="fas fa-sync-alt"></i>
+            Actualizar
+          </button>
+        </div>
+
+        <!-- No transactions found -->
+        <div *ngIf="filteredTransactions.length === 0" class="no-transactions">
+          <i class="fas fa-search"></i>
+          <p>No se encontraron transacciones relacionadas con este préstamo</p>
+          <small>Las transacciones pueden tardar unos minutos en aparecer en el explorador</small>
+        </div>
+
+        <!-- Transactions table -->
+        <div *ngIf="filteredTransactions.length > 0" class="transactions-table">
+          <div class="table-header">
+            <div class="col-hash">Hash</div>
+            <div class="col-from">Desde</div>
+            <div class="col-to">Hacia</div>
+            <div class="col-amount">Monto</div>
+            <div class="col-date">Fecha</div>
+            <div class="col-status">Estado</div>
+            <div class="col-actions">Acciones</div>
+          </div>
+
+          <div class="table-row" *ngFor="let tx of filteredTransactions">
+            <div class="col-hash">
+              <span class="hash-text" [title]="tx.hash">
+                {{ formatAddress(tx.hash) }}
+              </span>
+            </div>
+            <div class="col-from">
+              <span class="address-text" [title]="tx.from">
+                {{ formatAddress(tx.from) }}
+              </span>
+            </div>
+            <div class="col-to">
+              <span class="address-text" [title]="tx.to">
+                {{ formatAddress(tx.to) }}
+              </span>
+            </div>
+            <div class="col-amount">
+              <span class="amount-text">
+                {{ formatAmount(tx.value) | number:'1.0-6' }} ETH
+              </span>
+            </div>
+            <div class="col-date">
+              <span class="date-text">
+                {{ formatDate(tx.timeStamp) }}
+              </span>
+            </div>
+            <div class="col-status">
+              <span class="status-badge" 
+                    [class.success]="tx.isError === '0'"
+                    [class.error]="tx.isError === '1'">
+                <i class="fas" 
+                   [class.fa-check-circle]="tx.isError === '0'"
+                   [class.fa-times-circle]="tx.isError === '1'"></i>
+                {{ tx.isError === '0' ? 'Exitosa' : 'Fallida' }}
+              </span>
+            </div>
+            <div class="col-actions">
+              <button class="btn-action" 
+                      (click)="openInExplorer(getTransactionUrl(tx.hash))"
+                      title="Ver en explorador">
+                <i class="fas fa-external-link-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- All transactions section -->
+        <div class="all-transactions-section" *ngIf="transactions.length > filteredTransactions.length">
+          <details>
+            <summary>
+              <i class="fas fa-list-ul"></i>
+              Ver todas las transacciones ({{ transactions.length }})
+            </summary>
+            <div class="all-transactions-table">
+              <div class="table-row" *ngFor="let tx of transactions.slice(0, 20)">
+                <div class="col-hash">
+                  <span class="hash-text" [title]="tx.hash">
+                    {{ formatAddress(tx.hash) }}
+                  </span>
+                </div>
+                <div class="col-from">
+                  <span class="address-text" [title]="tx.from">
+                    {{ formatAddress(tx.from) }}
+                  </span>
+                </div>
+                <div class="col-to">
+                  <span class="address-text" [title]="tx.to">
+                    {{ formatAddress(tx.to) }}
+                  </span>
+                </div>
+                <div class="col-amount">
+                  <span class="amount-text">
+                    {{ formatAmount(tx.value) | number:'1.0-6' }} ETH
+                  </span>
+                </div>
+                <div class="col-date">
+                  <span class="date-text">
+                    {{ formatDate(tx.timeStamp) }}
+                  </span>
+                </div>
+                <div class="col-actions">
+                  <button class="btn-action" 
+                          (click)="openInExplorer(getTransactionUrl(tx.hash))"
+                          title="Ver en explorador">
+                    <i class="fas fa-external-link-alt"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+        Cerrar
+      </button>
+      <button class="btn btn-primary" 
+              (click)="openInExplorer(getAddressUrl(loan.borrowerAddress))">
+        <i class="fas fa-external-link-alt"></i>
+        Ver en {{ loan.network.charAt(0).toUpperCase() + loan.network.slice(1) }}
+      </button>
+    </div>
+  </div>
+</div>

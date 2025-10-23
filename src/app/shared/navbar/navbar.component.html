@@ -1,53 +1,103 @@
-<nav class="navbar">
+<nav class="nav-refined">
   <div class="nav-container">
-    <h1 class="nav-title">MicroTrust</h1>
+    <!-- Logo refinado -->
+    <div class="nav-brand">
+      <h1 class="nav-title">MicroTrust</h1>
+      <div class="nav-subtitle">Blockchain Microcredits</div>
+    </div>
     
+    <!-- Menú de navegación -->
     <ul class="nav-menu">
-      <li class="nav-item">
-        <a routerLink="/" class="nav-link">Inicio</a>
-      </li>
-      <li class="nav-item">
-        <a routerLink="/descripcion" class="nav-link">Descripción</a>
-      </li>
-      <li class="nav-item">
-        <a routerLink="/objetivos" class="nav-link">Objetivos</a>
-      </li>
-      <li class="nav-item">
-        <a routerLink="/beneficios" class="nav-link">Beneficios</a>
-      </li>
-      <li class="nav-item">
-        <a routerLink="/caracteristicas" class="nav-link">Características</a>
-      </li>
-      <li class="nav-item">
-        <a routerLink="/equipo" class="nav-link">Equipo</a>
-      </li>
-      <li class="nav-item">
-        <a routerLink="/soporte" class="nav-link">Soporte</a>
-      </li>
+      <!-- Menú de landing page (solo para visitantes y clientes, NO para admin) -->
+      <ng-container *ngIf="!isAdmin">
+        <li class="nav-item">
+          <a [routerLink]="account ? '/client/home' : '/home'" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="account ? '/client/descripcion' : '/descripcion'" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Descripción</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="account ? '/client/objetivos' : '/objetivos'" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">🎯</span>
+            <span class="nav-text">Objetivos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="account ? '/client/beneficios' : '/beneficios'" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">✨</span>
+            <span class="nav-text">Beneficios</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="account ? '/client/caracteristicas' : '/caracteristicas'" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-text">Características</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="account ? '/client/equipo' : '/equipo'" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Equipo</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="account ? '/client/soporte' : '/soporte'" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">🛠️</span>
+            <span class="nav-text">Soporte</span>
+          </a>
+        </li>
+      </ng-container>
       
-      <!-- Menú para clientes -->
-      <li class="nav-item" *ngIf="account">
-        <a routerLink="/solicitar-prestamo" class="nav-link">Solicitar Préstamo</a>
-      </li>
-      <li class="nav-item" *ngIf="account">
-        <a routerLink="/mis-prestamos" class="nav-link">Mis Préstamos</a>
-      </li>
+      <!-- Menú para clientes conectados (NO admin) -->
+      <ng-container *ngIf="account && !isAdmin">
+        <li class="nav-item">
+          <a routerLink="/client/solicitar-prestamo" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">💰</span>
+            <span class="nav-text">Solicitar Préstamo</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/client/mis-prestamos" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Mis Préstamos</span>
+          </a>
+        </li>
+      </ng-container>
       
-      <!-- Menú para administradores -->
-      <li class="nav-item" *ngIf="isAdmin">
-        <a routerLink="/admin" class="nav-link">Panel Admin</a>
-      </li>
+      <!-- Menú exclusivo para administradores -->
+      <ng-container *ngIf="isAdmin">
+        <li class="nav-item">
+          <a routerLink="/admin" class="nav-link admin-link" routerLinkActive="active">
+            <span class="nav-icon">👑</span>
+            <span class="nav-text">Panel Admin</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/home" class="nav-link" routerLinkActive="active">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+      </ng-container>
     </ul>
     
+    <!-- Sección de autenticación -->
     <div class="nav-auth">
-      <div *ngIf="!account">
-        <button (click)="connect()" class="btn-connect">Conectar MetaMask</button>
-      </div>
+      <!-- Toggle de tema -->
+      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="themeService.isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+        <span class="theme-icon" [class.dark]="themeService.isDarkMode()">
+          {{ themeService.isDarkMode() ? '🌙' : '☀️' }}
+        </span>
+      </button>
       
-      <div *ngIf="account" class="account-info">
-        <span class="account-address">{{ account | slice:0:6 }}...{{ account | slice:-4 }}</span>
-        <button (click)="disconnect()" class="btn-disconnect">Desconectar</button>
-      </div>
+      <!-- Componente de perfil de usuario -->
+      <app-user-profile></app-user-profile>
     </div>
   </div>
 </nav>

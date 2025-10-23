@@ -1,19 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DoCheck, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { WalletService } from '../../services/wallet.service';
 import { APP_CONSTANTS } from '../../constants/app.constants';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, DoCheck, OnDestroy {
   title = 'MicroTrust';
   subtitle = 'Plataforma de Microcréditos Descentralizada';
   account: string | null = null;
   isAdmin: boolean = false;
   isLoading: boolean = false;
+  private redirectTimeout: any;
   
   features = [
     {
@@ -41,6 +43,27 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     this.checkConnection();
+    // Verificar inmediatamente si es admin
+    if (this.account && this.isAdmin) {
+      this.router.navigate(['/admin']);
+    }
+    
+    // Agregar efecto visual al cargar la página
+    this.addPageLoadEffect();
+  }
+
+  ngDoCheck() {
+    // Verificar continuamente si es admin para redirigir
+    if (this.account && this.isAdmin && this.router.url !== '/admin') {
+      this.router.navigate(['/admin']);
+    }
+  }
+
+  ngOnDestroy() {
+    // Limpiar timeout si el componente se destruye
+    if (this.redirectTimeout) {
+      clearTimeout(this.redirectTimeout);
+    }
   }
 
   async checkConnection() {
@@ -68,6 +91,13 @@ export class HomeComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error connecting wallet:', error);
+      // Mostrar mensaje de error al usuario
+      await Swal.fire({
+        title: 'Error',
+        text: 'Error al conectar con MetaMask. Por favor, asegúrate de tener la extensión instalada y desbloqueada.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
     } finally {
       this.isLoading = false;
     }
@@ -78,13 +108,20 @@ export class HomeComponent implements OnInit {
     // Por ahora, simplemente limpiamos el estado local
     this.account = null;
     this.isAdmin = false;
+    // Cancelar cualquier redirección pendiente
+    if (this.redirectTimeout) {
+      clearTimeout(this.redirectTimeout);
+    }
     // Recargar la página para reflejar el cambio
     window.location.reload();
   }
 
   checkAdminStatus() {
     if (this.account) {
-      this.isAdmin = APP_CONSTANTS.ADMIN_ADDRESSES.includes(this.account);
+      // Comparación insensible a mayúsculas/minúsculas
+      this.isAdmin = APP_CONSTANTS.ADMIN_ADDRESSES.some(adminAddress => 
+        adminAddress.toLowerCase() === this.account?.toLowerCase()
+      );
     }
   }
 
@@ -92,7 +129,7 @@ export class HomeComponent implements OnInit {
     // Redirección automática después de login
     if (showMessage) {
       // Mostrar mensaje de redirección
-      setTimeout(() => {
+      this.redirectTimeout = setTimeout(() => {
         if (this.isAdmin) {
           this.router.navigate(['/admin']);
         } else if (this.account) {
@@ -109,6 +146,27 @@ export class HomeComponent implements OnInit {
         // Para clientes, mostramos la página principal con acceso a funcionalidades
         // No redirigimos automáticamente para que puedan ver la información
       }
+    }
+  }
+  
+  private addPageLoadEffect() {
+    // Agregar clase para animación de entrada
+    const container = document.querySelector('.home-container');
+    if (container) {
+      container.classList.add('page-loaded');
+    }
+    
+    // Agregar efecto de partículas de fondo
+    this.createBackgroundParticles();
+  }
+  
+  private createBackgroundParticles() {
+    // Esta función crearía un efecto visual de partículas en el fondo
+    // En una implementación real, se podría usar una librería como particles.js
+    // Por ahora, solo agregamos una clase para efectos CSS
+    const container = document.querySelector('.home-container');
+    if (container) {
+      container.classList.add('particles-effect');
     }
   }
 }
