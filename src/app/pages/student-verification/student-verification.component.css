@@ -317,3 +317,85 @@
   }
 }
 
+/* Estilos para carga de DNI */
+.loading-dni {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: #667eea;
+  font-size: 14px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Campos de solo lectura */
+input[readonly] {
+  background-color: #f5f5f5;
+  color: #666;
+  cursor: not-allowed;
+  border-color: #e0e0e0;
+}
+
+input[readonly]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Email input con dominio predefinido */
+.email-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.email-input-wrapper:focus-within {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.email-input-wrapper .email-prefix {
+  flex: 1;
+  border: none;
+  padding: 12px 15px;
+  font-size: 16px;
+  outline: none;
+}
+
+.email-input-wrapper .email-prefix:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.email-input-wrapper .email-domain {
+  padding: 12px 15px;
+  background: #f8f9fa;
+  color: #667eea;
+  font-weight: 600;
+  border-left: 1px solid #e0e0e0;
+  white-space: nowrap;
+  font-size: 14px;
+}
+

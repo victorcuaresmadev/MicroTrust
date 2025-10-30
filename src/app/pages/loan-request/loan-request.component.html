@@ -116,7 +116,7 @@
                   *ngFor="let purposeType of purposeTypes" 
                   class="purpose-card"
                   [class.selected]="loanForm.purposeType === purposeType.value"
-                  [class.verified]="purposeType.value === 'student' && isStudentVerified"
+                  [class.verified]="(purposeType.value === 'student' && isStudentVerified) || (purposeType.value === 'business' && isBusinessVerified)"
                   (click)="updatePurposeTypeWithType(purposeType)">
                   <div class="purpose-icon">
                     <span *ngIf="purposeType.value === 'student'">🎓</span>
@@ -130,6 +130,9 @@
                     <div class="purpose-rate">{{ (purposeType.interestRate * 100).toFixed(0) }}% interés</div>
                     <div class="verification-badge" *ngIf="purposeType.value === 'student' && isStudentVerified">
                       ✓ Verificado
+                    </div>
+                    <div class="verification-badge" *ngIf="purposeType.value === 'business' && isBusinessVerified" style="background: #d1fae5; color: #065f46;">
+                      ✓ Verificado (-2%)
                     </div>
                   </div>
                 </div>
@@ -157,6 +160,39 @@
                     class="btn btn-verify" 
                     (click)="openStudentVerification()">
                     🎓 Verificar Ahora
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Mensaje de verificación de negocio -->
+            <div class="verification-status" *ngIf="loanForm.purposeType === 'business'">
+              <div class="verification-box verified" *ngIf="isBusinessVerified" style="background: #d1fae5; border-color: #10b981;">
+                <div class="verification-icon">✅</div>
+                <div class="verification-info">
+                  <h4>Negocio Verificado - Descuento del 2% Aplicado</h4>
+                  <p><strong>RUC:</strong> {{ businessRUC }}</p>
+                  <p class="small-text"><strong>Razón Social:</strong> {{ businessName }}</p>
+                  <div style="background: #dbeafe; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                    <p style="margin: 0; font-size: 13px; color: #1e40af;">
+                      💰 Interés reducido de <strong style="color: #dc2626;">17%</strong> a <strong style="color: #059669;">15%</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="verification-box not-verified" *ngIf="!isBusinessVerified">
+                <div class="verification-icon">💼</div>
+                <div class="verification-info">
+                  <h4>Oferta Especial: Verifica tu Negocio</h4>
+                  <p>Verifica tu negocio con RUC y obtén un <strong>descuento del 2%</strong> en el interés (17% → 15%).</p>
+                  <p class="small-text" style="margin-top: 8px;">Solo necesitas tu RUC de 11 dígitos para verificar.</p>
+                  <button 
+                    type="button" 
+                    class="btn btn-verify" 
+                    (click)="offerBusinessVerification()"
+                    [disabled]="isVerifyingBusiness">
+                    <span *ngIf="!isVerifyingBusiness">💼 Verificar Negocio</span>
+                    <span *ngIf="isVerifyingBusiness">⏳ Verificando...</span>
                   </button>
                 </div>
               </div>
@@ -226,19 +262,23 @@
           <div class="card-body">
             <div class="summary-grid">
               <div class="summary-item">
-                <span class="summary-label">Monto Solicitado:</span>
-                <span class="summary-value">{{ loanForm.amount || 0 }} ETH</span>
+                <span class="summary-label">💰 Recibirás (monto completo):</span>
+                <span class="summary-value text-success">{{ loanForm.amount || 0 }} ETH</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Tasa de Interés Base:</span>
+                <span class="summary-label">📊 Tasa de Interés Base:</span>
                 <span class="summary-value" [class.strikethrough]="hasDiscount">{{ (interestRate * 100).toFixed(1) }}%</span>
               </div>
               <div class="summary-item" *ngIf="hasDiscount">
-                <span class="summary-label">Tasa con Descuento:</span>
+                <span class="summary-label">🎉 Tasa con Descuento:</span>
                 <span class="summary-value text-success">{{ (finalInterestRate * 100).toFixed(1) }}% (-{{ discountPercentage }}%)</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Monto Total a Pagar:</span>
+                <span class="summary-label">💵 Interés (ganancia admin):</span>
+                <span class="summary-value">{{ ((loanForm.amount || 0) * finalInterestRate).toFixed(4) }} ETH</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">🔴 Total a DEVOLVER:</span>
                 <span class="summary-value text-accent">{{ totalAmount.toFixed(4) }} ETH</span>
               </div>
               <div class="summary-item">

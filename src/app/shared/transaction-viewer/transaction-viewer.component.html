@@ -1,60 +1,46 @@
 <div class="transaction-modal" *ngIf="isVisible" (click)="closeModal()">
   <div class="modal-content card-gamer" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3 class="holographic-text">
-        <i class="fas fa-eye"></i>
-        Transacciones del Préstamo
-      </h3>
+      <div>
+        <h3 class="holographic-text">
+          <i class="fas fa-receipt"></i>
+          Transacciones Blockchain
+        </h3>
+        <p style="font-size: 14px; opacity: 0.8; margin: 5px 0 0 0;">
+          Mostrando transacciones de: <strong>{{ loan.borrowerName }}</strong>
+        </p>
+      </div>
       <button class="btn-close" (click)="closeModal()">
         <i class="fas fa-times"></i>
       </button>
     </div>
 
-    <div class="loan-info">
-      <div class="info-cards">
-        <div class="info-card">
-          <div class="card-icon">
-            <i class="fas fa-user"></i>
-          </div>
-          <div class="card-content">
-            <span class="card-label">Prestatario</span>
-            <span class="card-value">{{ loan.borrowerName }}</span>
-          </div>
+    <div class="loan-info" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; backdrop-filter: blur(10px);">
+          <div style="font-size: 12px; opacity: 0.8; margin-bottom: 5px;">👤 CLIENTE</div>
+          <div style="font-size: 16px; font-weight: 600;">{{ loan.borrowerName }}</div>
+          <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">{{ formatAddress(loan.borrowerAddress) }}</div>
         </div>
         
-        <div class="info-card address-card">
-          <div class="card-icon">
-            <i class="fas fa-wallet"></i>
-          </div>
-          <div class="card-content">
-            <span class="card-label">Dirección</span>
-            <a [href]="getAddressUrl(loan.borrowerAddress)" 
-               target="_blank" 
-               class="card-value address-link">
-              {{ formatAddress(loan.borrowerAddress) }}
-              <i class="fas fa-external-link-alt link-icon"></i>
-            </a>
-          </div>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; backdrop-filter: blur(10px);">
+          <div style="font-size: 12px; opacity: 0.8; margin-bottom: 5px;">💰 MONTO PRÉSTAMO</div>
+          <div style="font-size: 20px; font-weight: 700;">{{ loan.amount }} ETH</div>
         </div>
         
-        <div class="info-card amount-card">
-          <div class="card-icon">
-            <i class="fas fa-coins"></i>
-          </div>
-          <div class="card-content">
-            <span class="card-label">Monto</span>
-            <span class="card-value">{{ loan.amount }} ETH</span>
-          </div>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; backdrop-filter: blur(10px);">
+          <div style="font-size: 12px; opacity: 0.8; margin-bottom: 5px;">🌐 RED BLOCKCHAIN</div>
+          <div style="font-size: 16px; font-weight: 600; text-transform: uppercase;">{{ loan.network }}</div>
         </div>
         
-        <div class="info-card network-card">
-          <div class="card-icon">
-            <i class="fas fa-network-wired"></i>
-          </div>
-          <div class="card-content">
-            <span class="card-label">Red</span>
-            <span class="card-value">{{ loan.network.toUpperCase() }}</span>
-          </div>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; backdrop-filter: blur(10px);">
+          <div style="font-size: 12px; opacity: 0.8; margin-bottom: 5px;">🔍 EXPLORADOR</div>
+          <a [href]="getAddressUrl(loan.borrowerAddress)" 
+             target="_blank" 
+             style="color: #fff; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 5px;">
+            Ver en Etherscan
+            <i class="fas fa-external-link-alt" style="font-size: 12px;"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -86,10 +72,36 @@
 
       <!-- Transactions List -->
       <div *ngIf="!isLoading && !error" class="transactions-container">
+        <!-- Banner de advertencia para datos DEMO -->
+        <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #d97706; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);">
+          <div style="display: flex; align-items: start; gap: 15px;">
+            <i class="fas fa-exclamation-triangle" style="color: #fff; font-size: 24px; margin-top: 2px;"></i>
+            <div style="flex: 1;">
+              <div style="color: #fff; font-weight: 700; font-size: 16px; margin-bottom: 10px;">
+                ⚠️ DATOS DE DEMOSTRACIÓN
+              </div>
+              <div style="color: #fff; font-size: 14px; line-height: 1.6; margin-bottom: 10px;">
+                Las transacciones mostradas son <strong>FICTICIAS</strong> para demostración. 
+                No existen en la blockchain real, por eso Etherscan no las encuentra.
+              </div>
+              <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-top: 10px;">
+                <div style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
+                  ✅ Para ver transacciones REALES:
+                </div>
+                <ul style="color: #fff; font-size: 13px; margin: 0; padding-left: 20px; line-height: 1.8;">
+                  <li>El admin debe <strong>aprobar y enviar ETH</strong> al cliente</li>
+                  <li>La transacción aparecerá en <strong>{{ loan.network.charAt(0).toUpperCase() + loan.network.slice(1) }} Etherscan</strong></li>
+                  <li>Usa el enlace "Ver en Etherscan" abajo para ver la dirección real</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="transactions-header">
           <h4>
-            <i class="fas fa-list"></i>
-            Transacciones Relacionadas ({{ filteredTransactions.length }})
+            <i class="fas fa-flask"></i>
+            Transacciones Demo ({{ filteredTransactions.length }})
           </h4>
           <button class="btn btn-secondary btn-sm" (click)="loadTransactions()">
             <i class="fas fa-sync-alt"></i>
@@ -104,59 +116,84 @@
           <small>Las transacciones pueden tardar unos minutos en aparecer en el explorador</small>
         </div>
 
-        <!-- Transactions table -->
-        <div *ngIf="filteredTransactions.length > 0" class="transactions-table">
-          <div class="table-header">
-            <div class="col-hash">Hash</div>
-            <div class="col-from">Desde</div>
-            <div class="col-to">Hacia</div>
-            <div class="col-amount">Monto</div>
-            <div class="col-date">Fecha</div>
-            <div class="col-status">Estado</div>
-            <div class="col-actions">Acciones</div>
-          </div>
-
-          <div class="table-row" *ngFor="let tx of filteredTransactions">
-            <div class="col-hash">
-              <span class="hash-text" [title]="tx.hash">
-                {{ formatAddress(tx.hash) }}
-              </span>
-            </div>
-            <div class="col-from">
-              <span class="address-text" [title]="tx.from">
-                {{ formatAddress(tx.from) }}
-              </span>
-            </div>
-            <div class="col-to">
-              <span class="address-text" [title]="tx.to">
-                {{ formatAddress(tx.to) }}
-              </span>
-            </div>
-            <div class="col-amount">
-              <span class="amount-text">
-                {{ formatAmount(tx.value) | number:'1.0-6' }} ETH
-              </span>
-            </div>
-            <div class="col-date">
-              <span class="date-text">
-                {{ formatDate(tx.timeStamp) }}
-              </span>
-            </div>
-            <div class="col-status">
+        <!-- Transactions Cards (Mejor diseño) -->
+        <div *ngIf="filteredTransactions.length > 0" class="transactions-list">
+          <div class="transaction-card" *ngFor="let tx of filteredTransactions; let i = index">
+            <div class="card-header-tx">
+              <span class="tx-number">Transacción #{{ i + 1 }}</span>
               <span class="status-badge" 
-                    [class.success]="tx.isError === '0'"
-                    [class.error]="tx.isError === '1'">
+                    [style.background]="tx.isError === '0' ? '#10b981' : '#ef4444'">
                 <i class="fas" 
                    [class.fa-check-circle]="tx.isError === '0'"
                    [class.fa-times-circle]="tx.isError === '1'"></i>
-                {{ tx.isError === '0' ? 'Exitosa' : 'Fallida' }}
+                {{ tx.isError === '0' ? '✅ Exitosa' : '❌ Fallida' }}
               </span>
             </div>
-            <div class="col-actions">
-              <button class="btn-action" 
-                      (click)="openInExplorer(getTransactionUrl(tx.hash))"
-                      title="Ver en explorador">
-                <i class="fas fa-external-link-alt"></i>
+            
+            <div class="card-body-tx">
+              <div class="tx-row">
+                <div class="tx-label">📤 Desde:</div>
+                <div class="tx-value" [title]="tx.from">
+                  <span [style.color]="tx.from.toLowerCase() === loan.borrowerAddress.toLowerCase() ? '#10b981' : '#667eea'">
+                    {{ formatAddress(tx.from) }}
+                    <span *ngIf="tx.from.toLowerCase() === loan.borrowerAddress.toLowerCase()" style="font-size: 11px; opacity: 0.8;"> (Cliente)</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div class="tx-row">
+                <div class="tx-label">📥 Hacia:</div>
+                <div class="tx-value" [title]="tx.to">
+                  <span [style.color]="tx.to.toLowerCase() === loan.borrowerAddress.toLowerCase() ? '#10b981' : '#667eea'">
+                    {{ formatAddress(tx.to) }}
+                    <span *ngIf="tx.to.toLowerCase() === loan.borrowerAddress.toLowerCase()" style="font-size: 11px; opacity: 0.8;"> (Cliente)</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div class="tx-row">
+                <div class="tx-label">💰 Monto:</div>
+                <div class="tx-value" style="font-size: 18px; font-weight: 700; color: #10b981;">
+                  {{ formatAmount(tx.value) | number:'1.0-6' }} ETH
+                </div>
+              </div>
+              
+              <div class="tx-row">
+                <div class="tx-label">📅 Fecha:</div>
+                <div class="tx-value">{{ formatDate(tx.timeStamp) }}</div>
+              </div>
+              
+              <div class="tx-row">
+                <div class="tx-label">🔗 Hash:</div>
+                <div class="tx-value" 
+                     style="font-family: monospace; font-size: 11px; word-break: break-all; line-height: 1.4;"
+                     [title]="'Hash completo: ' + tx.hash">
+                  <span [style.color]="tx.hash.length === 66 ? '#10b981' : '#ef4444'">
+                    {{ tx.hash }}
+                  </span>
+                  <span *ngIf="tx.hash.length !== 66" 
+                        style="color: #ef4444; font-size: 10px; display: block; margin-top: 5px;">
+                    ⚠️ Hash incompleto ({{ tx.hash.length }}/66 caracteres)
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-footer-tx">
+              <div style="background: #fef3c7; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #fbbf24;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-info-circle" style="color: #d97706; font-size: 14px;"></i>
+                  <span style="color: #92400e; font-size: 12px; font-weight: 600;">
+                    Esta es una transacción DEMO - no existe en blockchain
+                  </span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" 
+                      disabled
+                      title="Transacción ficticia - no existe en la blockchain real"
+                      style="width: 100%; opacity: 0.6; cursor: not-allowed;">
+                <i class="fas fa-flask"></i>
+                Transacción Demo (no real)
               </button>
             </div>
           </div>
@@ -172,8 +209,10 @@
             <div class="all-transactions-table">
               <div class="table-row" *ngFor="let tx of transactions.slice(0, 20)">
                 <div class="col-hash">
-                  <span class="hash-text" [title]="tx.hash">
-                    {{ formatAddress(tx.hash) }}
+                  <span class="hash-text" 
+                        style="font-family: monospace; font-size: 11px; word-break: break-all;"
+                        [title]="tx.hash">
+                    {{ tx.hash }}
                   </span>
                 </div>
                 <div class="col-from">
@@ -216,9 +255,10 @@
         Cerrar
       </button>
       <button class="btn btn-primary" 
-              (click)="openInExplorer(getAddressUrl(loan.borrowerAddress))">
+              (click)="openInExplorer(getAddressUrl(loan.borrowerAddress))"
+              title="Ver la dirección del cliente en el explorador blockchain real">
         <i class="fas fa-external-link-alt"></i>
-        Ver en {{ loan.network.charAt(0).toUpperCase() + loan.network.slice(1) }}
+        🔍 Ver Dirección Real en {{ loan.network.charAt(0).toUpperCase() + loan.network.slice(1) }}
       </button>
     </div>
   </div>

@@ -155,16 +155,35 @@ export class TransactionViewerComponent implements OnInit {
   }
   
   /**
-   * Genera un hash único para cada usuario
+   * Genera un hash único y VÁLIDO para cada usuario (66 caracteres: 0x + 64 hex)
    */
   private generateUniqueHash(address: string, seed: number): string {
     const baseHash = '0x';
-    const addressPart = address.slice(2, 10); // Parte única de la dirección
-    const seedHex = seed.toString(16).padStart(8, '0');
-    const timestamp = Date.now().toString(16).slice(-8);
-    const randomPart = Math.random().toString(16).slice(2, 34);
     
-    return baseHash + addressPart + seedHex + timestamp + randomPart;
+    // Parte única de la dirección (8 caracteres)
+    const addressPart = address.slice(2, 10).padEnd(8, '0');
+    
+    // Seed en hexadecimal (8 caracteres)
+    const seedHex = seed.toString(16).padStart(8, '0');
+    
+    // Timestamp en hexadecimal (12 caracteres)
+    const timestamp = Date.now().toString(16).padStart(12, '0');
+    
+    // Partes aleatorias para completar 64 caracteres hex
+    const random1 = Math.random().toString(16).slice(2, 18).padEnd(16, '0'); // 16 caracteres
+    const random2 = Math.random().toString(16).slice(2, 14).padEnd(12, '0'); // 12 caracteres
+    
+    // Total: 8 + 8 + 12 + 16 + 12 + 8 = 64 caracteres hex
+    const finalSeed = (seed * 999).toString(16).padStart(8, '0'); // 8 caracteres más
+    
+    const fullHash = baseHash + addressPart + seedHex + timestamp + random1 + random2 + finalSeed;
+    
+    // Asegurar exactamente 66 caracteres (0x + 64 hex)
+    const hexPart = (fullHash.slice(2) + '0'.repeat(64)).slice(0, 64);
+    const validHash = '0x' + hexPart;
+    
+    console.log(`✅ Hash generado: ${validHash} (${validHash.length} caracteres)`);
+    return validHash;
   }
 
   getTransactionUrl(txHash: string): string {

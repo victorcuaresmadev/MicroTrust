@@ -67,6 +67,14 @@
           <span class="network-icon">⛓️</span>
           <span class="network-name">Sepolia</span>
         </button>
+        <button (click)="openHoodiExplorerInfo()" class="network-option network-manual" [class.active]="chainId === '0x88c50'" title="Agregar manualmente desde el explorador">
+          <span class="network-icon">⛓️</span>
+          <span class="network-name">Hoodi ⚠️</span>
+        </button>
+        <button (click)="switchToNetwork('goerli')" class="network-option" [class.active]="chainId === '0x5'">
+          <span class="network-icon">⛓️</span>
+          <span class="network-name">Goerli</span>
+        </button>
       </div>
     </div>
 

@@ -63,7 +63,7 @@ export class LoanFormValidationUtils {
 
   // Validar red blockchain
   static validateNetwork(network: string): { isValid: boolean; error?: string } {
-    const validNetworks = ['goerli', 'holesky', 'sepolia', 'ephemery'];
+    const validNetworks = ['goerli', 'holesky', 'sepolia', 'hoodi', 'ephemery'];
     if (!validNetworks.includes(network)) {
       return { isValid: false, error: 'La red seleccionada no es válida' };
     }

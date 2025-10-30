@@ -5,3 +5,14 @@ dist/
 .vscode/
 npm-debug.log
 package-lock.json
+coverage/
+tmp/
+out/
+*.log
+Thumbs.db
+.DS_Store
+*.swp
+.env
+.env.*
+*.local
+*.tar

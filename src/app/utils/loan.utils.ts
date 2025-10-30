@@ -45,7 +45,7 @@ export class LoanUtils {
 
   // Validar red
   static isValidNetwork(network: string): boolean {
-    return ['goerli', 'holesky', 'sepolia', 'ephemery'].includes(network);
+    return ['goerli', 'holesky', 'sepolia', 'hoodi', 'ephemery'].includes(network);
   }
 
   // Obtener etiqueta de propósito

@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  microtrust:
+    build: .
+    image: microtrust-app:latest
+    container_name: microtrust
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+

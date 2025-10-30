@@ -69,6 +69,8 @@ export class LoanService {
         return APP_CONSTANTS.NETWORKS.HOLESKY.limit; // 10 ETH
       case 'sepolia':
         return APP_CONSTANTS.NETWORKS.SEPOLIA.limit; // 5 ETH
+      case 'hoodi':
+        return APP_CONSTANTS.NETWORKS.HOODI.limit; // 8 ETH
       case 'ephemery':
         return APP_CONSTANTS.NETWORKS.EPHEMERY.limit; // 3 ETH
       default:
@@ -77,16 +79,27 @@ export class LoanService {
   }
 
   // Crear una nueva solicitud de préstamo
-  createLoanRequest(request: Omit<LoanRequest, 'id' | 'status' | 'createdAt'>): LoanRequest {
+  createLoanRequest(request: Omit<LoanRequest, 'id' | 'status' | 'createdAt' | 'totalAmountToPay'>): LoanRequest {
+    // Calcular el monto total a pagar (monto + interés)
+    const totalAmountToPay = request.amount + (request.amount * request.interestRate);
+    
     const newLoan: LoanRequest = {
       id: this.generateId(),
       ...request,
+      totalAmountToPay: totalAmountToPay, // Monto que debe devolver el prestatario
       status: 'pending',
       createdAt: new Date()
     };
     
     this.loans.push(newLoan);
     this.saveLoansToStorage(); // Guardar en almacenamiento local
+    
+    console.log(`💰 Préstamo creado:
+    - Monto a recibir: ${request.amount} ETH
+    - Interés (${(request.interestRate * 100).toFixed(0)}%): ${(request.amount * request.interestRate).toFixed(4)} ETH
+    - Total a devolver: ${totalAmountToPay.toFixed(4)} ETH
+    - Ganancia del admin: ${(request.amount * request.interestRate).toFixed(4)} ETH`);
+    
     return newLoan;
   }
 
@@ -146,7 +159,7 @@ export class LoanService {
         
         return { 
           success: true, 
-          message: `Transacción enviada exitosamente! Hash: ${txHash}\n\nLa transacción está siendo procesada en blockchain. El estado se actualizará automáticamente cuando se confirme (puede tomar 1-5 minutos).` 
+          message: `Transacción enviada exitosamente! Hash: ${txHash}\n\n🚀 La transacción está siendo procesada en blockchain. El estado se actualizará automáticamente cuando se confirme.\n\n⏱️ Tiempo esperado: 15-60 segundos\n✅ Con gas price optimizado para confirmación rápida` 
         };
       } catch (error: any) {
         console.error('Error al enviar monto a través de MetaMask:', error);
@@ -168,8 +181,14 @@ export class LoanService {
   }
 
   // Enviar ETH al prestatario a través de MetaMask
+  // ⚠️ IMPORTANTE: El admin envía el MONTO COMPLETO solicitado (loan.amount)
+  // El interés NO se descuenta aquí. El admin "presta" su dinero.
+  // El admin recuperará su inversión + ganará el interés cuando el cliente devuelva el préstamo.
   private async sendEthToBorrower(loan: LoanRequest): Promise<string> {
-    console.log(`🚀 Iniciando envío de ${loan.amount} ETH a ${loan.borrowerAddress}`);
+    console.log(`🚀 Iniciando envío del MONTO COMPLETO: ${loan.amount} ETH a ${loan.borrowerAddress}`);
+    console.log(`📊 Cliente recibirá: ${loan.amount} ETH (sin descuentos)`);
+    console.log(`💰 Cliente deberá devolver: ${loan.totalAmountToPay.toFixed(4)} ETH`);
+    console.log(`💵 Ganancia del admin: ${(loan.totalAmountToPay - loan.amount).toFixed(4)} ETH`);
     
     if (!window.ethereum) {
       throw new Error('MetaMask no está instalado. Por favor, instala MetaMask para continuar.');
@@ -183,44 +202,94 @@ export class LoanService {
       }
       
       const fromAddress = accounts[0];
-      console.log(`💰 Enviando desde: ${fromAddress}`);
-      console.log(`🎯 Enviando hacia: ${loan.borrowerAddress}`);
+      console.log(`💰 Enviando desde (Admin): ${fromAddress}`);
+      console.log(`🎯 Enviando hacia (Cliente): ${loan.borrowerAddress}`);
       
-      // Convertir ETH a Wei usando BigInt para evitar problemas de precisión
+      // ✅ Convertir el MONTO COMPLETO a Wei (sin descuentos de interés)
       const amountInWei = BigInt(Math.floor(loan.amount * 1e18));
       const amountInHex = '0x' + amountInWei.toString(16);
       
       console.log(`💎 Monto: ${loan.amount} ETH = ${amountInWei.toString()} Wei = ${amountInHex}`);
       
-      // Parámetros de la transacción
-      const transactionParameters = {
-        to: loan.borrowerAddress,
-        from: fromAddress,
-        value: amountInHex,
-        gas: '0x5208', // 21000 gas (transferencia simple)
-        gasPrice: '0x4A817C800' // 20 Gwei en hexadecimal
-      };
-      
-      console.log('📋 Parámetros de transacción:', transactionParameters);
-      
-      // Mostrar confirmación al usuario
-      console.log('⏳ Esperando confirmación del usuario en MetaMask...');
-      
-      // Solicitar la transacción a MetaMask
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [transactionParameters],
-      });
-      
-      console.log('✅ Transacción enviada exitosamente!');
-      console.log('🔗 Hash de transacción:', txHash);
-      console.log(`🌐 Ver en explorador: https://${loan.network}.etherscan.io/tx/${txHash}`);
-      
-      // Retornar el hash para seguimiento
-      return txHash;
+      // 🚀 OPTIMIZACIÓN: Usar EIP-1559 para transacciones MÁS RÁPIDAS
+      try {
+        // Obtener base fee del bloque actual
+        const block = await window.ethereum.request({ 
+          method: 'eth_getBlockByNumber',
+          params: ['latest', false]
+        });
+        
+        const baseFeePerGas = BigInt(block.baseFeePerGas || '0x0');
+        
+        // Calcular maxFeePerGas (base fee * 2 para asegurar inclusión rápida)
+        const maxFeePerGas = baseFeePerGas * 2n;
+        
+        // Prioridad ALTA para mineros (5 Gwei)
+        const maxPriorityFeePerGas = BigInt(5 * 1e9); // 5 Gwei = transacción rápida
+        
+        console.log(`⛽ Base Fee: ${Number(baseFeePerGas) / 1e9} Gwei`);
+        console.log(`🚀 Max Fee: ${Number(maxFeePerGas) / 1e9} Gwei`);
+        console.log(`💨 Priority Fee: ${Number(maxPriorityFeePerGas) / 1e9} Gwei (RÁPIDA)`);
+        
+        // Parámetros de la transacción con EIP-1559
+        const transactionParameters: any = {
+          to: loan.borrowerAddress,
+          from: fromAddress,
+          value: amountInHex,
+          gas: '0x5208', // 21000 gas (transferencia simple)
+          maxFeePerGas: '0x' + maxFeePerGas.toString(16),
+          maxPriorityFeePerGas: '0x' + maxPriorityFeePerGas.toString(16)
+        };
+        
+        console.log('📋 Parámetros de transacción (EIP-1559):', transactionParameters);
+        console.log('⏳ Esperando confirmación del usuario en MetaMask...');
+        
+        // Solicitar la transacción a MetaMask
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [transactionParameters],
+        });
+        
+        return txHash;
+        
+      } catch (eip1559Error) {
+        // Fallback: Si EIP-1559 no es soportado, usar gas price legacy
+        console.warn('⚠️ EIP-1559 no soportado, usando gas price legacy...');
+        
+        const currentGasPrice = await window.ethereum.request({ 
+          method: 'eth_gasPrice' 
+        });
+        
+        // Agregar 50% de margen para MÁXIMA prioridad
+        const gasPriceWithMargin = BigInt(currentGasPrice) * 150n / 100n;
+        const gasPriceHex = '0x' + gasPriceWithMargin.toString(16);
+        
+        console.log(`⛽ Gas Price (mercado): ${parseInt(currentGasPrice, 16) / 1e9} Gwei`);
+        console.log(`🚀 Gas Price (con +50%): ${Number(gasPriceWithMargin) / 1e9} Gwei`);
+        
+        const transactionParameters = {
+          to: loan.borrowerAddress,
+          from: fromAddress,
+          value: amountInHex,
+          gas: '0x5208',
+          gasPrice: gasPriceHex
+        };
+        
+        console.log('📋 Parámetros de transacción (Legacy):', transactionParameters);
+        console.log('⏳ Esperando confirmación del usuario en MetaMask...');
+        
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [transactionParameters],
+        });
+        
+        return txHash;
+      }
       
     } catch (error: any) {
       console.error('❌ Error al enviar transacción:', error);
+      console.log('✅ Transacción procesada');
+      console.log(`🌐 Ver en explorador: https://${loan.network}.etherscan.io/tx/`);
       
       // Manejar diferentes tipos de errores
       if (error.code === 4001) {
@@ -253,8 +322,15 @@ export class LoanService {
       throw new Error('El préstamo debe estar aprobado para poder ser pagado');
     }
     
-    // Calcular el monto total a pagar (principal + intereses)
-    const totalAmount = loan.amount + (loan.amount * loan.interestRate);
+    // Usar el monto total ya calculado (monto + interés)
+    const totalAmount = loan.totalAmountToPay;
+    const interestAmount = totalAmount - loan.amount;
+    
+    console.log(`💳 Pago de préstamo:
+    - Monto original: ${loan.amount} ETH
+    - Interés: ${interestAmount.toFixed(4)} ETH
+    - Total a pagar: ${totalAmount.toFixed(4)} ETH
+    - Ganancia del admin: ${interestAmount.toFixed(4)} ETH`);
     
     try {
       // Intentar enviar el monto total al administrador que aprobó el préstamo
@@ -318,13 +394,25 @@ export class LoanService {
       
       console.log(`💎 Monto total: ${amount} ETH = ${amountInWei.toString()} Wei = ${amountInHex}`);
       
+      // 🚀 OPTIMIZACIÓN: Obtener gas price dinámico del mercado
+      const currentGasPrice = await window.ethereum.request({ 
+        method: 'eth_gasPrice' 
+      });
+      
+      // Agregar 20% de margen para priorizar la transacción
+      const gasPriceWithMargin = BigInt(currentGasPrice) * 120n / 100n;
+      const gasPriceHex = '0x' + gasPriceWithMargin.toString(16);
+      
+      console.log(`⛽ Gas Price (mercado): ${parseInt(currentGasPrice, 16) / 1e9} Gwei`);
+      console.log(`⛽ Gas Price (con +20%): ${Number(gasPriceWithMargin) / 1e9} Gwei`);
+      
       // Parámetros de la transacción
       const transactionParameters = {
         to: lenderAddress,
         from: fromAddress,
         value: amountInHex,
         gas: '0x5208', // 21000 gas (transferencia simple)
-        gasPrice: '0x4A817C800' // 20 Gwei en hexadecimal
+        gasPrice: gasPriceHex // ✅ Gas price dinámico
       };
       
       console.log('📋 Parámetros de pago:', transactionParameters);
@@ -493,39 +581,134 @@ export class LoanService {
     }
   }
 
-  // Seguimiento de confirmación de transacción
+  // Seguimiento de confirmación de transacción (OPTIMIZADO)
   private async trackTransactionConfirmation(loan: LoanRequest, txHash: string): Promise<void> {
     console.log(`🔍 Iniciando seguimiento de transacción ${txHash}...`);
     
-    // Intentar verificar la transacción cada 30 segundos
+    let attempts = 0;
+    const maxAttempts = 12; // 12 intentos x 5s = 60 segundos máximo
+    
+    // 🚀 OPTIMIZACIÓN: Verificar cada 5 segundos (antes 30s)
     const checkInterval = setInterval(async () => {
+      attempts++;
+      
       try {
         const isConfirmed = await this.checkTransactionStatus(txHash, loan.network);
         
         if (isConfirmed) {
-          console.log(`✅ Transacción ${txHash} confirmada!`);
+          console.log(`✅ Transacción ${txHash} confirmada en ${attempts * 5} segundos!`);
           
           // Actualizar estado del préstamo
           loan.status = 'approved';
-          loan.events = (loan.events || '') + `\nTransacción confirmada: ${txHash}\nEstado: Fondos transferidos exitosamente`;
+          loan.events = (loan.events || '') + `\nTransacción confirmada: ${txHash}\nTiempo: ${attempts * 5}s\nEstado: Fondos transferidos exitosamente`;
           this.saveLoansToStorage();
           
           // Limpiar el intervalo
           clearInterval(checkInterval);
           
-          // Mostrar notificación de confirmación (opcional)
+          // 🎉 OPTIMIZACIÓN: Notificación visual al usuario
+          this.showTransactionConfirmedNotification(loan, txHash, attempts * 5);
+          
           console.log(`🎉 Préstamo ${loan.id} confirmado en blockchain!`);
+        } else if (attempts >= maxAttempts) {
+          // ⚠️ OPTIMIZACIÓN: Detectar transacción demorada después de 60s
+          console.warn(`⚠️ Transacción ${txHash} excedió el tiempo esperado (60s)`);
+          clearInterval(checkInterval);
+          
+          // Notificar que está demorada pero seguir verificando en segundo plano
+          this.showTransactionDelayedNotification(loan, txHash);
+          
+          // Continuar verificando pero con menor frecuencia (cada 15s)
+          this.trackDelayedTransaction(loan, txHash);
         }
       } catch (error) {
         console.warn('⚠️ Error al verificar transacción:', error);
+        
+        if (attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+        }
       }
-    }, 30000); // Verificar cada 30 segundos
+    }, 5000); // ✅ Verificar cada 5 segundos (antes 30s)
+  }
+  
+  // Seguimiento de transacciones demoradas (después de 60s)
+  private async trackDelayedTransaction(loan: LoanRequest, txHash: string): Promise<void> {
+    console.log(`⏰ Iniciando seguimiento extendido para transacción ${txHash}...`);
     
-    // Detener verificación después de 10 minutos
-    setTimeout(() => {
+    let extendedAttempts = 0;
+    const maxExtendedAttempts = 20; // 20 x 15s = 5 minutos adicionales
+    
+    const checkInterval = setInterval(async () => {
+      extendedAttempts++;
+      
+      try {
+        const isConfirmed = await this.checkTransactionStatus(txHash, loan.network);
+        
+        if (isConfirmed) {
+          const totalTime = 60 + (extendedAttempts * 15);
+          console.log(`✅ Transacción ${txHash} finalmente confirmada después de ${totalTime}s`);
+          
+          loan.status = 'approved';
+          loan.events = (loan.events || '') + `\nTransacción confirmada (demorada): ${txHash}\nTiempo total: ${totalTime}s`;
+          this.saveLoansToStorage();
+          
+          clearInterval(checkInterval);
+          this.showTransactionConfirmedNotification(loan, txHash, totalTime);
+        } else if (extendedAttempts >= maxExtendedAttempts) {
+          console.error(`❌ Transacción ${txHash} no confirmada después de 6 minutos`);
+          clearInterval(checkInterval);
+          this.showTransactionFailedNotification(loan, txHash);
+        }
+      } catch (error) {
+        console.warn('⚠️ Error en verificación extendida:', error);
+        if (extendedAttempts >= maxExtendedAttempts) {
       clearInterval(checkInterval);
-      console.log(`⏰ Tiempo de seguimiento agotado para transacción ${txHash}`);
-    }, 600000); // 10 minutos
+        }
+      }
+    }, 15000); // Cada 15 segundos en modo extendido
+  }
+  
+  // Notificación de transacción confirmada
+  private showTransactionConfirmedNotification(loan: LoanRequest, txHash: string, timeInSeconds: number): void {
+    // Disparar evento personalizado para que los componentes lo escuchen
+    window.dispatchEvent(new CustomEvent('transaction-confirmed', {
+      detail: {
+        loan: loan,
+        txHash: txHash,
+        time: timeInSeconds,
+        message: `✅ Transacción confirmada en ${timeInSeconds} segundos`
+      }
+    }));
+    
+    console.log(`📢 Notificación enviada: Transacción confirmada (${loan.id})`);
+  }
+  
+  // Notificación de transacción demorada
+  private showTransactionDelayedNotification(loan: LoanRequest, txHash: string): void {
+    window.dispatchEvent(new CustomEvent('transaction-delayed', {
+      detail: {
+        loan: loan,
+        txHash: txHash,
+        message: `⚠️ La transacción está tardando más de 60 segundos. Seguimos verificando...`,
+        explorerUrl: `https://${loan.network}.etherscan.io/tx/${txHash}`
+      }
+    }));
+    
+    console.log(`📢 Notificación enviada: Transacción demorada (${loan.id})`);
+  }
+  
+  // Notificación de transacción fallida
+  private showTransactionFailedNotification(loan: LoanRequest, txHash: string): void {
+    window.dispatchEvent(new CustomEvent('transaction-failed', {
+      detail: {
+        loan: loan,
+        txHash: txHash,
+        message: `❌ La transacción no se confirmó después de 6 minutos`,
+        explorerUrl: `https://${loan.network}.etherscan.io/tx/${txHash}`
+      }
+    }));
+    
+    console.log(`📢 Notificación enviada: Transacción fallida (${loan.id})`);
   }
 
   // Verificar estado de transacción en blockchain

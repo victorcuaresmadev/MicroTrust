@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 
 export interface StudentVerificationData {
+  dni: string;
   firstName: string;
   lastName: string;
   email: string;
   universityName: string;
-  studentId: string;
   careerProgram: string;
   enrollmentYear: string;
   verifiedAt: string;
@@ -62,6 +62,18 @@ export class StudentVerificationService {
   validateInstitutionalEmail(email: string): boolean {
     const emailRegex = /^[a-zA-Z0-9._-]+@MicroTrust\.edu\.pe$/i;
     return emailRegex.test(email);
+  }
+
+  // Validar formato de DNI peruano (8 dígitos)
+  validateDni(dni: string): boolean {
+    const dniRegex = /^[0-9]{8}$/;
+    return dniRegex.test(dni);
+  }
+
+  // Obtener DNI del estudiante verificado
+  getDni(): string | null {
+    const verification = this.getVerification();
+    return verification ? verification.dni : null;
   }
 
   // Obtener nombre completo del estudiante verificado

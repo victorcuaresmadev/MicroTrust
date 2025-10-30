@@ -28,6 +28,7 @@ export class BlockchainExplorerService {
     private readonly API_KEYS = {
         holesky: '8HY7XBZ8IWXVXZHZFRTYKVSID2PNKU2SZ7',
         sepolia: '8HY7XBZ8IWXVXZHZFRTYKVSID2PNKU2SZ7',
+        hoodi: '8HY7XBZ8IWXVXZHZFRTYKVSID2PNKU2SZ7',
         goerli: '8HY7XBZ8IWXVXZHZFRTYKVSID2PNKU2SZ7',
         mainnet: '8HY7XBZ8IWXVXZHZFRTYKVSID2PNKU2SZ7'
     };
@@ -40,6 +41,10 @@ export class BlockchainExplorerService {
         sepolia: {
             api: 'https://api-sepolia.etherscan.io/api',
             explorer: 'https://sepolia.etherscan.io'
+        },
+        hoodi: {
+            api: 'https://hoodi.etherscan.io/api',
+            explorer: 'https://hoodi.etherscan.io'
         },
         goerli: {
             api: 'https://api-goerli.etherscan.io/api',
@@ -104,6 +109,7 @@ export class BlockchainExplorerService {
         const activeAddresses = {
             holesky: '0x8ba1f109551bD432803012645Hac136c22C57B',
             sepolia: '0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf',
+            hoodi: '0x430B607db26DB81c563d76756f1a3806889221F7',
             goerli: '0x8ba1f109551bD432803012645Hac136c22C57B',
             mainnet: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
         };
@@ -247,14 +253,22 @@ export class BlockchainExplorerService {
             return '#';
         }
 
-        // Validar que el hash tenga formato correcto
-        if (!txHash.startsWith('0x') || txHash.length < 10) {
-            console.warn(`Hash inválido: ${txHash}`);
+        // Validar formato de hash (debe ser 0x + 64 caracteres hex = 66 caracteres totales)
+        if (!txHash.startsWith('0x') || txHash.length !== 66) {
+            console.error(`❌ Hash inválido: ${txHash} (longitud: ${txHash.length}, esperado: 66 caracteres)`);
+            console.error(`❌ No se puede generar URL para Etherscan con hash incompleto`);
+            return '#';
+        }
+
+        // Validar que solo contenga caracteres hexadecimales
+        const hexPattern = /^0x[0-9a-fA-F]{64}$/;
+        if (!hexPattern.test(txHash)) {
+            console.error(`❌ Hash con caracteres inválidos: ${txHash}`);
             return '#';
         }
 
         const url = `${networkConfig.explorer}/tx/${txHash}`;
-        console.log(`URL generada para transacción: ${url}`);
+        console.log(`✅ URL generada para transacción: ${url}`);
         return url;
     }
 

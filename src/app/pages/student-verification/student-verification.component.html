@@ -4,7 +4,7 @@
     <div class="verification-header">
       <div class="logo-section">
         <h1 class="company-logo">MicroTrust</h1>
-        <span class="verification-badge">Verificación Estudiantil</span>
+        <span class="verification-badge">Verificación Estudiantil - Solo Perú 🇵🇪</span>
       </div>
     </div>
 
@@ -14,13 +14,14 @@
         <h2>Verificar tu condición de estudiante</h2>
         <p class="subtitle">
           Para acceder a las tasas preferenciales para estudiantes, necesitamos verificar tu información académica.
+          <strong style="display: block; margin-top: 10px; color: #c91432;">⚠️ Solo disponible para estudiantes peruanos con DNI</strong>
         </p>
       </div>
 
       <!-- Formulario de verificación -->
       <form (ngSubmit)="submitVerification()" class="verification-form">
         
-        <!-- Nombres -->
+        <!-- Nombres (autocompletados con DNI) -->
         <div class="form-row">
           <div class="form-group half-width">
             <label for="firstName">
@@ -32,7 +33,8 @@
               class="form-control"
               [(ngModel)]="verificationForm.firstName"
               name="firstName"
-              placeholder="Ingresa tu(s) nombre(s)"
+              placeholder="Se autocompletará con tu DNI"
+              readonly
               required>
           </div>
 
@@ -46,7 +48,8 @@
               class="form-control"
               [(ngModel)]="verificationForm.lastName"
               name="lastName"
-              placeholder="Ingresa tu(s) apellido(s)"
+              placeholder="Se autocompletará con tu DNI"
+              readonly
               required>
           </div>
         </div>
@@ -56,17 +59,21 @@
           <label for="email">
             Correo Electrónico Institucional <span class="required">*</span>
           </label>
-          <input 
-            type="email" 
-            id="email" 
-            class="form-control"
-            [(ngModel)]="verificationForm.email"
-            name="email"
-            placeholder="nombre@MicroTrust.edu.pe"
-            required>
+          <div class="email-input-wrapper">
+            <input 
+              type="text" 
+              id="emailUsername" 
+              class="form-control email-prefix"
+              [(ngModel)]="emailUsername"
+              name="emailUsername"
+              placeholder="Ej: nombre1"
+              (input)="updateEmail()"
+              required>
+            <span class="email-domain">&#64;MicroTrust.edu.pe</span>
+          </div>
           <div class="helper-text">
             <span class="info-icon">ℹ️</span>
-            Debes usar tu correo institucional que termine en <strong>&#64;MicroTrust.edu.pe</strong>
+            Solo ingresa tu nombre de usuario. El dominio ya está definido
           </div>
         </div>
 
@@ -75,30 +82,65 @@
           <label for="universityName">
             Nombre de la Universidad <span class="required">*</span>
           </label>
-          <input 
-            type="text" 
+          <select 
             id="universityName" 
             class="form-control"
             [(ngModel)]="verificationForm.universityName"
             name="universityName"
-            placeholder="Ej: Universidad Nacional Mayor de San Marcos"
             required>
+            <option value="">Selecciona tu universidad</option>
+            <option value="Pontificia Universidad Católica del Perú (PUCP)">Pontificia Universidad Católica del Perú (PUCP)</option>
+            <option value="Universidad Nacional Mayor de San Marcos (UNMSM)">Universidad Nacional Mayor de San Marcos (UNMSM)</option>
+            <option value="Universidad Peruana Cayetana Heredia (UPCH)">Universidad Peruana Cayetana Heredia (UPCH)</option>
+            <option value="Universidad del Pacífico">Universidad del Pacífico</option>
+            <option value="Universidad de Lima">Universidad de Lima</option>
+            <option value="Universidad Peruana de Ciencias Aplicadas (UPC)">Universidad Peruana de Ciencias Aplicadas (UPC)</option>
+            <option value="Universidad Nacional de Ingeniería (UNI)">Universidad Nacional de Ingeniería (UNI)</option>
+            <option value="Universidad Nacional Agraria La Molina (UNALM)">Universidad Nacional Agraria La Molina (UNALM)</option>
+            <option value="Universidad San Ignacio de Loyola (USIL)">Universidad San Ignacio de Loyola (USIL)</option>
+            <option value="Universidad de Piura (UDEP)">Universidad de Piura (UDEP)</option>
+            <option value="Universidad ESAN">Universidad ESAN</option>
+            <option value="Universidad San Martín de Porres (USMP)">Universidad San Martín de Porres (USMP)</option>
+            <option value="Universidad Científica del Sur">Universidad Científica del Sur</option>
+            <option value="Universidad Nacional de San Agustín de Arequipa (UNSA)">Universidad Nacional de San Agustín de Arequipa (UNSA)</option>
+            <option value="Universidad Ricardo Palma (URP)">Universidad Ricardo Palma (URP)</option>
+            <option value="Universidad Nacional de Trujillo (UNT)">Universidad Nacional de Trujillo (UNT)</option>
+            <option value="Universidad Católica San Pablo, Arequipa">Universidad Católica San Pablo, Arequipa</option>
+            <option value="Universidad Privada del Norte (UPN)">Universidad Privada del Norte (UPN)</option>
+            <option value="Universidad Privada Norbert Wiener">Universidad Privada Norbert Wiener</option>
+            <option value="Universidad Nacional de San Antonio Abad del Cusco (UNSAAC)">Universidad Nacional de San Antonio Abad del Cusco (UNSAAC)</option>
+            <option value="Universidad Nacional Federico Villarreal (UNFV)">Universidad Nacional Federico Villarreal (UNFV)</option>
+            <option value="Universidad Nacional del Altiplano (UNA)">Universidad Nacional del Altiplano (UNA)</option>
+            <option value="Universidad César Vallejo (UCV)">Universidad César Vallejo (UCV)</option>
+            <option value="Universidad Continental">Universidad Continental</option>
+            <option value="I.E.S Valle Grande">I.E.S Valle Grande</option>
+          </select>
         </div>
 
-        <!-- Código de estudiante y Carrera -->
+        <!-- DNI (Código de Estudiante) y Año de Matrícula -->
         <div class="form-row">
           <div class="form-group half-width">
-            <label for="studentId">
-              Código de Estudiante <span class="required">*</span>
+            <label for="dni">
+              DNI (Código de Estudiante) <span class="required">*</span>
             </label>
             <input 
               type="text" 
-              id="studentId" 
+              id="dni" 
               class="form-control"
-              [(ngModel)]="verificationForm.studentId"
-              name="studentId"
-              placeholder="Ej: 20191234"
+              [(ngModel)]="verificationForm.dni"
+              name="dni"
+              placeholder="DNI de 8 dígitos"
+              maxlength="8"
+              (input)="onDniChange()"
+              [disabled]="isLoadingDni"
               required>
+            <div class="helper-text">
+              <span class="info-icon">🆔</span>
+              DNI peruano - autocompleta nombres y apellidos
+            </div>
+            <div *ngIf="isLoadingDni" class="loading-dni">
+              <span class="spinner-small"></span> Verificando DNI...
+            </div>
           </div>
 
           <div class="form-group half-width">
@@ -122,14 +164,34 @@
           <label for="careerProgram">
             Carrera o Programa de Estudios <span class="required">*</span>
           </label>
-          <input 
-            type="text" 
+          <select 
             id="careerProgram" 
             class="form-control"
             [(ngModel)]="verificationForm.careerProgram"
             name="careerProgram"
-            placeholder="Ej: Ingeniería de Sistemas"
             required>
+            <option value="">Selecciona tu carrera</option>
+            <option value="Medicina">Medicina</option>
+            <option value="Agronegocios">Agronegocios</option>
+            <option value="Geología">Geología</option>
+            <option value="Ingeniería Minera, Metalurgia y Petróleo">Ingeniería Minera, Metalurgia y Petróleo</option>
+            <option value="Ciencias de la Computación">Ciencias de la Computación</option>
+            <option value="Ingeniería de Sistemas y Cómputo">Ingeniería de Sistemas y Cómputo</option>
+            <option value="Ingeniería Civil">Ingeniería Civil</option>
+            <option value="Derecho">Derecho</option>
+            <option value="Economía">Economía</option>
+            <option value="Ingeniería Eléctrica">Ingeniería Eléctrica</option>
+            <option value="Ingeniería Mecánica">Ingeniería Mecánica</option>
+            <option value="Enfermería">Enfermería</option>
+            <option value="Ingeniería de Telecomunicaciones">Ingeniería de Telecomunicaciones</option>
+            <option value="Estadística">Estadística</option>
+            <option value="Ciencias Políticas">Ciencias Políticas</option>
+            <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+            <option value="Obstetricia">Obstetricia</option>
+            <option value="Ingeniería Electrónica">Ingeniería Electrónica</option>
+            <option value="Otras Carreras de Administración">Otras Carreras de Administración</option>
+            <option value="Ingeniería Sanitaria">Ingeniería Sanitaria</option>
+          </select>
         </div>
 
         <!-- Mensaje de error -->

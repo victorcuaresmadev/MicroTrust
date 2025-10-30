@@ -129,6 +129,12 @@
       </button>
       <button 
         class="btn btn-network"
+        (click)="openHoodiExplorer()"
+        title="Agregar Hoodi manualmente desde el explorador">
+        Hoodi ⚠️
+      </button>
+      <button 
+        class="btn btn-network"
         (click)="switchNetwork('goerli')">
         Goerli
       </button>
@@ -192,7 +198,11 @@
             </div>
           </div>
           <div class="loan-meta">
-            <div class="loan-amount">{{ loan.amount }} ETH</div>
+            <div class="loan-amount">
+              <div style="font-size: 0.85em; color: #888;">💰 Monto:</div>
+              <div>{{ loan.amount }} ETH</div>
+              <div style="font-size: 0.75em; color: #059669;">🔴 Devolver: {{ loan.totalAmountToPay.toFixed(4) }} ETH</div>
+            </div>
             <div class="loan-interest">{{ (loan.interestRate * 100).toFixed(1) }}%</div>
           </div>
         </div>
@@ -367,24 +377,32 @@
         
         <div class="loan-detail-section">
           <h3>Detalles del Préstamo</h3>
-          <div class="detail-row">
-            <span class="label">Monto:</span>
-            <span class="value">{{ selectedLoan.amount }} ETH</span>
+          <div class="detail-row" style="background: #d1fae5; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+            <span class="label">💰 Monto que enviará el Admin (completo):</span>
+            <span class="value" style="font-weight: bold; color: #059669;">{{ selectedLoan.amount }} ETH</span>
           </div>
           <div class="detail-row">
-            <span class="label">Tasa de Interés:</span>
+            <span class="label">📊 Tasa de Interés:</span>
             <span class="value">{{ (selectedLoan.interestRate * 100).toFixed(1) }}%</span>
           </div>
           <div class="detail-row">
-            <span class="label">Propósito:</span>
+            <span class="label">💵 Interés (Ganancia del Admin):</span>
+            <span class="value">{{ (selectedLoan.totalAmountToPay - selectedLoan.amount).toFixed(4) }} ETH</span>
+          </div>
+          <div class="detail-row" style="background: #fee2e2; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+            <span class="label">🔴 Total que debe devolver el Cliente:</span>
+            <span class="value" style="font-weight: bold; color: #dc2626;">{{ selectedLoan.totalAmountToPay.toFixed(4) }} ETH</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">🎯 Propósito:</span>
             <span class="value">{{ getPurposeTypeLabel(selectedLoan.purposeType) }}</span>
           </div>
           <div class="detail-row">
-            <span class="label">Red:</span>
+            <span class="label">🌐 Red:</span>
             <span class="value">{{ getNetworkLabel(selectedLoan.network) }}</span>
           </div>
           <div class="detail-row">
-            <span class="label">Duración:</span>
+            <span class="label">⏱️ Duración:</span>
             <span class="value">{{ selectedLoan.loanDuration || 'No especificada' }} días</span>
           </div>
         </div>

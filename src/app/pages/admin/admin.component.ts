@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { WalletService } from '../../services/wallet.service';
 import { LoanService } from '../../services/loan/loan.service';
@@ -13,7 +13,7 @@ import Swal from 'sweetalert2';
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, OnDestroy {
   allLoans: LoanRequest[] = [];
   pendingLoans: LoanRequest[] = [];
   approvedLoans: LoanRequest[] = [];
@@ -50,6 +50,161 @@ export class AdminComponent implements OnInit {
   ngOnInit(): void {
     this.checkAdminAccess();
     this.loadAllLoans();
+    this.setupTransactionListeners();
+  }
+
+  ngOnDestroy(): void {
+    this.removeTransactionListeners();
+  }
+
+  // 🎉 OPTIMIZACIÓN: Configurar listeners para notificaciones en tiempo real
+  private setupTransactionListeners(): void {
+    window.addEventListener('transaction-confirmed', this.handleTransactionConfirmed.bind(this));
+    window.addEventListener('transaction-delayed', this.handleTransactionDelayed.bind(this));
+    window.addEventListener('transaction-failed', this.handleTransactionFailed.bind(this));
+    console.log('✅ Listeners de transacciones configurados');
+  }
+
+  private removeTransactionListeners(): void {
+    window.removeEventListener('transaction-confirmed', this.handleTransactionConfirmed.bind(this));
+    window.removeEventListener('transaction-delayed', this.handleTransactionDelayed.bind(this));
+    window.removeEventListener('transaction-failed', this.handleTransactionFailed.bind(this));
+  }
+
+  // Handler para transacción confirmada
+  private handleTransactionConfirmed(event: any): void {
+    const { loan, txHash, time, message } = event.detail;
+    
+    console.log('🎉 Transacción confirmada recibida:', { loan, txHash, time });
+    
+    // Recargar préstamos para mostrar estado actualizado
+    this.loadAllLoans();
+    
+    // Mostrar notificación de éxito
+    Swal.fire({
+      icon: 'success',
+      title: '✅ Transacción Confirmada',
+      html: `
+        <div style="text-align: left; padding: 15px;">
+          <p style="font-size: 16px; margin-bottom: 15px;">
+            <strong>${message}</strong>
+          </p>
+          <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+            <p style="margin: 5px 0;"><strong>Préstamo:</strong> ${loan.borrowerName}</p>
+            <p style="margin: 5px 0;"><strong>Monto:</strong> ${loan.amount} ETH</p>
+            <p style="margin: 5px 0;"><strong>Tiempo:</strong> ${time} segundos</p>
+          </div>
+          <p style="font-size: 13px; color: #666; margin-top: 10px;">
+            <strong>Hash:</strong><br>
+            <code style="font-size: 11px; word-break: break-all;">${txHash}</code>
+          </p>
+          <a href="https://${loan.network}.etherscan.io/tx/${txHash}" 
+             target="_blank" 
+             style="color: #3b82f6; text-decoration: none; font-size: 14px;">
+            📊 Ver en Explorador Blockchain →
+          </a>
+        </div>
+      `,
+      confirmButtonText: '👍 Perfecto',
+      confirmButtonColor: '#10b981',
+      timer: 8000,
+      timerProgressBar: true,
+      background: 'var(--bg-card)',
+      color: 'var(--text-primary)'
+    });
+  }
+
+  // Handler para transacción demorada
+  private handleTransactionDelayed(event: any): void {
+    const { loan, txHash, message, explorerUrl } = event.detail;
+    
+    console.log('⚠️ Transacción demorada recibida:', { loan, txHash });
+    
+    Swal.fire({
+      icon: 'warning',
+      title: '⏰ Transacción Demorada',
+      html: `
+        <div style="text-align: left; padding: 15px;">
+          <p style="font-size: 15px; margin-bottom: 15px;">
+            ${message}
+          </p>
+          <div style="background: #fffbeb; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+            <p style="margin: 5px 0;"><strong>Préstamo:</strong> ${loan.borrowerName}</p>
+            <p style="margin: 5px 0;"><strong>Monto:</strong> ${loan.amount} ETH</p>
+            <p style="margin: 5px 0;"><strong>Red:</strong> ${loan.network}</p>
+          </div>
+          <p style="font-size: 13px; color: #666; margin: 10px 0;">
+            <strong>Posibles causas:</strong><br>
+            • Red congestionada<br>
+            • Gas price en el límite<br>
+            • Alto volumen de transacciones
+          </p>
+          <p style="font-size: 13px; color: #666;">
+            <strong>Hash:</strong><br>
+            <code style="font-size: 11px; word-break: break-all;">${txHash}</code>
+          </p>
+          <a href="${explorerUrl}" 
+             target="_blank" 
+             style="color: #f59e0b; text-decoration: none; font-size: 14px;">
+            🔍 Verificar Estado en Explorador →
+          </a>
+        </div>
+      `,
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#f59e0b',
+      background: 'var(--bg-card)',
+      color: 'var(--text-primary)'
+    });
+  }
+
+  // Handler para transacción fallida
+  private handleTransactionFailed(event: any): void {
+    const { loan, txHash, message, explorerUrl } = event.detail;
+    
+    console.log('❌ Transacción fallida recibida:', { loan, txHash });
+    
+    Swal.fire({
+      icon: 'error',
+      title: '❌ Error en Transacción',
+      html: `
+        <div style="text-align: left; padding: 15px;">
+          <p style="font-size: 15px; margin-bottom: 15px;">
+            ${message}
+          </p>
+          <div style="background: #fef2f2; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+            <p style="margin: 5px 0;"><strong>Préstamo:</strong> ${loan.borrowerName}</p>
+            <p style="margin: 5px 0;"><strong>Monto:</strong> ${loan.amount} ETH</p>
+          </div>
+          <p style="font-size: 13px; color: #666; margin: 10px 0;">
+            <strong>Acciones recomendadas:</strong><br>
+            • Verificar el estado en el explorador<br>
+            • Revisar el balance de gas<br>
+            • Contactar al prestatario<br>
+            • Intentar reenviar la transacción
+          </p>
+          <p style="font-size: 13px; color: #666;">
+            <strong>Hash:</strong><br>
+            <code style="font-size: 11px; word-break: break-all;">${txHash}</code>
+          </p>
+          <a href="${explorerUrl}" 
+             target="_blank" 
+             style="color: #ef4444; text-decoration: none; font-size: 14px;">
+            🔍 Ver Detalles en Explorador →
+          </a>
+        </div>
+      `,
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#ef4444',
+      showCancelButton: true,
+      cancelButtonText: 'Recargar Préstamos',
+      cancelButtonColor: '#6b7280',
+      background: 'var(--bg-card)',
+      color: 'var(--text-primary)'
+    }).then((result) => {
+      if (result.isDismissed) {
+        this.loadAllLoans();
+      }
+    });
   }
 
   async checkAdminAccess(): Promise<void> {
@@ -163,6 +318,10 @@ export class AdminComponent implements OnInit {
     
     console.log('✅ MetaMask verificado:', metaMaskCheck.message);
     
+    // Calcular valores para mostrar
+    const totalToReturn = loan.totalAmountToPay;
+    const adminProfit = totalToReturn - loan.amount;
+    
     // Mostrar confirmación profesional
     const result = await Swal.fire({
       title: '¿Aprobar Préstamo?',
@@ -180,22 +339,72 @@ export class AdminComponent implements OnInit {
               <span class="info-label">Dirección:</span>
               <span class="info-value" style="font-family: monospace; font-size: 0.9em;">${loan.borrowerAddress.slice(0, 20)}...${loan.borrowerAddress.slice(-10)}</span>
             </div>
-            <div class="info-row">
-              <span class="info-label">Monto:</span>
-              <span class="info-value" style="color: #10b981; font-size: 1.3em; font-weight: 700;">${loan.amount} ETH</span>
+            <div style="background: #d1fae5; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              <div class="info-row" style="margin-bottom: 8px;">
+                <span class="info-label">💰 Enviarás al Cliente (completo):</span>
+                <span class="info-value" style="color: #059669; font-size: 1.4em; font-weight: 700;">${loan.amount} ETH</span>
+              </div>
+              <div class="info-row" style="margin-bottom: 8px; font-size: 0.9em;">
+                <span class="info-label">📊 Tasa de Interés:</span>
+                <span class="info-value">${(loan.interestRate * 100).toFixed(1)}%</span>
+              </div>
+              <div class="info-row" style="margin-bottom: 8px;">
+                <span class="info-label">💵 Tu Ganancia (interés):</span>
+                <span class="info-value" style="color: #10b981; font-weight: 600;">+${adminProfit.toFixed(4)} ETH</span>
+              </div>
+            </div>
+            <div style="background: #fee2e2; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              <div class="info-row">
+                <span class="info-label">🔴 Cliente devolverá (total):</span>
+                <span class="info-value" style="color: #dc2626; font-size: 1.3em; font-weight: 700;">${totalToReturn.toFixed(4)} ETH</span>
+              </div>
             </div>
             <div class="info-row">
-              <span class="info-label">Red:</span>
+              <span class="info-label">🌐 Red:</span>
               <span class="info-value" style="color: #00d4ff;">${this.getNetworkLabel(loan.network)}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Propósito:</span>
+              <span class="info-label">🎯 Propósito:</span>
               <span class="info-value">${this.getPurposeTypeLabel(loan.purposeType)}</span>
             </div>
           </div>
-          <div class="approval-warning">
-            <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 8px;"></i>
-            <span>Esta acción enviará <strong>${loan.amount} ETH</strong> desde tu wallet</span>
+          ${loan.network === 'goerli' || loan.network === 'ephemery' ? `
+          <div class="approval-warning" style="background: #fee2e2; padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #ef4444;">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <i class="fas fa-ban" style="color: #ef4444; font-size: 1.5em; margin-top: 3px;"></i>
+              <div style="flex: 1; text-align: left;">
+                <div style="font-weight: 700; color: #ef4444; margin-bottom: 8px; font-size: 1.1em;">🚫 Red ${this.getNetworkLabel(loan.network)} NO DISPONIBLE</div>
+                <div style="font-size: 0.95em; line-height: 1.6; color: #991b1b;">
+                  <strong>💰 No hay saldo disponible en esta red</strong>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.9em; color: #991b1b; font-weight: 600;">
+                  ⚠️ NO SE PUEDE APROBAR este préstamo hasta que se recargue saldo en ${this.getNetworkLabel(loan.network)}.
+                </div>
+                <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                  ✅ Solicita al cliente cambiar a <strong>Hoodi</strong> o <strong>Sepolia</strong>.
+                </div>
+              </div>
+            </div>
+          </div>
+          ` : loan.network === 'holesky' ? `
+          <div class="approval-warning" style="background: #fee2e2; padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #ef4444;">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.5em; margin-top: 3px;"></i>
+              <div style="flex: 1; text-align: left;">
+                <div style="font-weight: 700; color: #ef4444; margin-bottom: 8px; font-size: 1.05em;">⚠️ Advertencia: Red Holesky</div>
+                <div style="font-size: 0.95em; line-height: 1.6; color: #991b1b;">
+                  <strong>⏱️ Las transacciones en Holesky están tardando 5-10 minutos</strong> debido a que la red será descontinuada el 31 de octubre de 2025.
+                </div>
+                <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                  ✅ Recomendamos usar <strong>Hoodi</strong> o <strong>Sepolia</strong> para transacciones más rápidas.
+                </div>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+          <div class="approval-warning" style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-top: 15px;">
+            <i class="fas fa-info-circle" style="color: #f59e0b; margin-right: 8px;"></i>
+            <span>Enviarás <strong>${loan.amount} ETH completos</strong> desde tu wallet. El cliente recibirá el monto completo.</span>
           </div>
         </div>
       `,
@@ -215,6 +424,12 @@ export class AdminComponent implements OnInit {
       showLoaderOnConfirm: true,
       allowOutsideClick: false,
       preConfirm: async () => {
+        // Bloquear aprobación si es Goerli o Ephemery
+        if (loan.network === 'goerli' || loan.network === 'ephemery') {
+          Swal.showValidationMessage(`🚫 No se puede aprobar: La red ${this.getNetworkLabel(loan.network)} no tiene saldo disponible`);
+          return false;
+        }
+        
         try {
           console.log(`🚀 Iniciando aprobación de préstamo ${loan.id}...`);
           const approvalResult = await this.loanService.approveLoan(loan.id, this.account!);
@@ -514,6 +729,39 @@ export class AdminComponent implements OnInit {
       this.error = `Error al cambiar a la red ${network}: ${error.message}`;
       console.error('Error switching network:', error);
     }
+  }
+
+  openHoodiExplorer(): void {
+    Swal.fire({
+      title: 'Agregar Red Hoodi',
+      html: `
+        <div style="text-align: left; padding: 15px;">
+          <p style="margin-bottom: 15px;">
+            Para agregar la red Hoodi, haz clic en el botón de abajo.
+            Esto abrirá el explorador oficial donde podrás agregarla a MetaMask.
+          </p>
+          <div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 15px;">
+            <p style="margin: 0; color: #856404; font-size: 14px;">
+              ⚠️ <strong>Nota:</strong> La red Hoodi debe agregarse manualmente desde el explorador oficial.
+            </p>
+          </div>
+          <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+            <p style="margin: 5px 0; font-size: 13px;"><strong>Chain ID:</strong> 560048</p>
+            <p style="margin: 5px 0; font-size: 13px;"><strong>RPC URL:</strong> https://0xrpc.io/hoodi</p>
+            <p style="margin: 5px 0; font-size: 13px;"><strong>Explorer:</strong> https://hoodi.etherscan.io</p>
+          </div>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: '🌐 Abrir Explorador Hoodi',
+      confirmButtonColor: '#667eea',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.open('https://hoodi.etherscan.io', '_blank');
+      }
+    });
   }
 
   // Método para abrir el visor de transacciones

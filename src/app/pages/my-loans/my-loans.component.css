@@ -556,8 +556,8 @@
     height: 50vh;
   }
 }
-/
-* Nuevos estilos para botones de contrato */
+
+/* Nuevos estilos para botones de contrato */
 .btn-download {
   background: linear-gradient(135deg, #28a745, #20c997);
   color: white;

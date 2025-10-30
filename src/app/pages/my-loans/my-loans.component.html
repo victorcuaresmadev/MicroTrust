@@ -43,18 +43,23 @@
           
           <div class="loan-details">
             <div class="detail-row">
-              <span class="label">Monto:</span>
-              <span class="value">{{ loan.amount }} ETH</span>
+              <span class="label">💰 Monto recibido:</span>
+              <span class="value text-success">{{ loan.amount }} ETH</span>
             </div>
             
             <div class="detail-row">
-              <span class="label">Tasa de interés:</span>
+              <span class="label">📊 Tasa de interés:</span>
               <span class="value">{{ (loan.interestRate * 100).toFixed(1) }}%</span>
             </div>
             
             <div class="detail-row">
-              <span class="label">Monto total a pagar:</span>
-              <span class="value">{{ (loan.amount + (loan.amount * loan.interestRate)).toFixed(4) }} ETH</span>
+              <span class="label">💵 Interés (ganancia admin):</span>
+              <span class="value">{{ (loan.totalAmountToPay - loan.amount).toFixed(4) }} ETH</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">🔴 Total a DEVOLVER:</span>
+              <span class="value text-danger">{{ loan.totalAmountToPay.toFixed(4) }} ETH</span>
             </div>
             
             <div class="detail-row">

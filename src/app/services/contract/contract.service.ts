@@ -293,7 +293,7 @@ export class ContractService {
     };
   }
 
-  // Generar contenido del contrato en formato HTML
+  // Generar contenido del contrato en formato HTML (DISEÑO PROFESIONAL Y COMPACTO)
   generateContractHTML(loan: LoanRequest): string {
     const contractData = this.getContractData(loan);
     
@@ -303,190 +303,518 @@ export class ContractService {
       <head>
         <title>Contrato de Préstamo - ${contractData.contractId}</title>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { 
-            font-family: Arial, sans-serif; 
-            margin: 40px; 
-            background-color: #f8f9fa;
-            color: #333;
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
           }
-          .contract-container {
-            max-width: 800px;
+          
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 10px;
+            line-height: 1.4;
+            color: #333;
+            background: #fff;
+          }
+          
+          .contract-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
             margin: 0 auto;
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
           }
-          .header { 
-            text-align: center; 
-            border-bottom: 3px solid #007bff; 
-            padding-bottom: 20px; 
-            margin-bottom: 30px;
+          
+          /* HEADER COMPACTO */
+          .header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 12px;
           }
-          .header h1 {
-            color: #007bff;
-            margin: 0 0 10px 0;
+          
+          .header-left h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
           }
-          .header h2 {
-            color: #333;
-            margin: 0 0 5px 0;
+          
+          .header-left p {
+            font-size: 9px;
+            opacity: 0.9;
+            margin: 2px 0;
           }
-          .section { 
-            margin: 25px 0; 
-            padding: 20px;
-            border: 1px solid #eee;
-            border-radius: 5px;
-            background-color: #f8f9fa;
+          
+          .header-right {
+            text-align: right;
           }
-          .section h3 {
-            color: #007bff;
-            margin-top: 0;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+          
+          .contract-id-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
           }
-          .label { 
-            font-weight: bold; 
-            color: #555;
+          
+          .header-right .date {
+            font-size: 8px;
+            margin-top: 4px;
+            opacity: 0.8;
           }
-          .value { 
-            margin-left: 10px; 
-            color: #333;
+          
+          /* LAYOUT DE 2 COLUMNAS */
+          .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
           }
-          .qr-code { 
-            text-align: center; 
-            margin: 30px 0; 
-            padding: 20px;
-            background: white;
-            border-radius: 5px;
-            border: 1px solid #eee;
+          
+          /* SECCIÓN COMPACTA */
+          .section {
+            background: #f8f9fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
           }
-          .qr-code img {
-            max-width: 200px;
-            height: auto;
+          
+          .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 6px;
           }
-          .signature { 
-            margin-top: 50px; 
+          
+          .section-content {
+            font-size: 9px;
+          }
+          
+          .info-row {
             display: flex;
             justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px dotted #ddd;
           }
-          .signature-column {
+          
+          .info-row:last-child {
+            border-bottom: none;
+          }
+          
+          .info-label {
+            font-weight: 600;
+            color: #555;
+            flex: 0 0 45%;
+          }
+          
+          .info-value {
+            color: #333;
+            font-weight: 500;
+            text-align: right;
             flex: 1;
+          }
+          
+          /* DESTACADOS FINANCIEROS */
+          .financial-highlight {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+          }
+          
+          .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             text-align: center;
           }
-          .signature-line {
-            margin-top: 80px;
-            border-top: 1px solid #333;
-            padding-top: 10px;
+          
+          .financial-item {
+            padding: 8px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 6px;
           }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #777;
-            font-size: 12px;
+          
+          .financial-label {
+            font-size: 8px;
+            color: #065f46;
+            font-weight: 600;
+            margin-bottom: 4px;
           }
-          .contract-id {
-            background: #007bff;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
+          
+          .financial-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #059669;
+          }
+          
+          /* QR Y VERIFICACIÓN */
+          .verification-section {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            background: #f0f4f8;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 10px;
             margin: 10px 0;
           }
+          
+          .qr-container {
+            text-align: center;
+          }
+          
+          .qr-container img {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            background: white;
+            padding: 4px;
+          }
+          
+          .qr-container p {
+            font-size: 7px;
+            color: #667eea;
+            margin-top: 4px;
+            font-weight: 600;
+          }
+          
+          .verification-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          }
+          
+          .verification-info h4 {
+            font-size: 10px;
+            color: #667eea;
+            margin-bottom: 6px;
+          }
+          
+          .verification-info ul {
+            font-size: 8px;
+            list-style: none;
+            padding: 0;
+          }
+          
+          .verification-info li {
+            padding: 2px 0;
+            color: #555;
+          }
+          
+          .verification-info li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+          }
+          
+          /* TÉRMINOS */
+          .terms-section {
+            background: #fff9e6;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+          }
+          
+          .terms-section h4 {
+            font-size: 10px;
+            color: #d97706;
+            margin-bottom: 6px;
+          }
+          
+          .terms-section p, .terms-section ul {
+            font-size: 8px;
+            color: #92400e;
+            line-height: 1.5;
+          }
+          
+          .terms-section ul {
+            padding-left: 15px;
+            margin: 4px 0;
+          }
+          
+          /* FIRMAS COMPACTAS */
+          .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #e1e4e8;
+          }
+          
+          .signature-box {
+            text-align: center;
+          }
+          
+          .signature-line {
+            border-top: 2px solid #333;
+            margin: 25px 10px 6px 10px;
+            padding-top: 6px;
+          }
+          
+          .signature-name {
+            font-size: 9px;
+            font-weight: 700;
+            color: #333;
+          }
+          
+          .signature-role {
+            font-size: 8px;
+            color: #666;
+            margin-top: 2px;
+          }
+          
+          /* FOOTER */
+          .footer {
+            text-align: center;
+            font-size: 7px;
+            color: #999;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+          }
+          
+          /* BADGES */
+          .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 8px;
+            font-weight: 600;
+          }
+          
+          .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+          }
+          
+          .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+          }
+          
+          .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+          }
+          
+          /* PRINT OPTIMIZATION */
           @media print {
             body {
               margin: 0;
-              background-color: white;
+              padding: 0;
             }
-            .contract-container {
+            
+            .contract-page {
+              margin: 0;
+              padding: 10mm;
+              width: 100%;
               box-shadow: none;
-              border: none;
             }
+            
+            .section {
+              break-inside: avoid;
+            }
+          }
+          
+          @page {
+            size: A4;
+            margin: 0;
           }
         </style>
       </head>
       <body>
-        <div class="contract-container">
+        <div class="contract-page">
+          <!-- HEADER -->
           <div class="header">
-            <h1>CONTRATO DE PRÉSTAMO</h1>
-            <h2>${APP_CONSTANTS.COMPANY_NAME}</h2>
-            <p>RUC: ${APP_CONSTANTS.COMPANY_RUC}</p>
-            <div class="contract-id">ID: ${contractData.contractId}</div>
+            <div class="header-left">
+              <h1>📄 CONTRATO DE PRÉSTAMO BLOCKCHAIN</h1>
+              <p><strong>${APP_CONSTANTS.COMPANY_NAME}</strong></p>
+              <p>RUC: ${APP_CONSTANTS.COMPANY_RUC} | Perú 🇵🇪</p>
+            </div>
+            <div class="header-right">
+              <div class="contract-id-badge">
+                ID: ${contractData.contractId}
+              </div>
+              <div class="date">
+                📅 ${contractData.createdAt.toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
+            </div>
           </div>
           
-          <div class="section">
-            <h3>INFORMACIÓN DEL CONTRATO</h3>
-            <p><span class="label">ID del Contrato:</span> <span class="value">${contractData.contractId}</span></p>
-            <p><span class="label">Fecha de Creación:</span> <span class="value">${contractData.createdAt.toLocaleString()}</span></p>
-            <p><span class="label">Fecha de Aprobación:</span> <span class="value">${contractData.approvedAt ? contractData.approvedAt.toLocaleString() : 'N/A'}</span></p>
+          <!-- RESUMEN FINANCIERO DESTACADO -->
+          <div class="financial-highlight">
+            <div class="financial-grid">
+              <div class="financial-item">
+                <div class="financial-label">💰 MONTO RECIBIDO</div>
+                <div class="financial-value">${contractData.loanAmount} ETH</div>
+              </div>
+              <div class="financial-item">
+                <div class="financial-label">📊 INTERÉS (${(contractData.interestRate * 100).toFixed(1)}%)</div>
+                <div class="financial-value">+${(contractData.loanAmount * contractData.interestRate).toFixed(4)} ETH</div>
+              </div>
+              <div class="financial-item">
+                <div class="financial-label">🔴 TOTAL A DEVOLVER</div>
+                <div class="financial-value">${contractData.totalAmount.toFixed(4)} ETH</div>
+              </div>
+            </div>
           </div>
           
-          <div class="section">
-            <h3>INFORMACIÓN DEL PRESTATARIO</h3>
-            <p><span class="label">Nombre:</span> <span class="value">${contractData.borrowerName}</span></p>
-            <p><span class="label">Dirección de Wallet:</span> <span class="value">${contractData.borrowerAddress}</span></p>
+          <!-- INFORMACIÓN EN DOS COLUMNAS -->
+          <div class="two-columns">
+            <!-- PRESTATARIO -->
+            <div class="section">
+              <div class="section-title">👤 PRESTATARIO (CLIENTE)</div>
+              <div class="section-content">
+                <div class="info-row">
+                  <span class="info-label">Nombre Completo:</span>
+                  <span class="info-value">${contractData.borrowerName}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Wallet Address:</span>
+                  <span class="info-value" style="font-size: 7px; font-family: monospace;">${contractData.borrowerAddress.substring(0, 20)}...${contractData.borrowerAddress.substring(38)}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Red Blockchain:</span>
+                  <span class="info-value">
+                    <span class="badge badge-info">${contractData.network.toUpperCase()}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- PRESTAMISTA -->
+            <div class="section">
+              <div class="section-title">🏢 PRESTAMISTA (EMPRESA)</div>
+              <div class="section-content">
+                <div class="info-row">
+                  <span class="info-label">Razón Social:</span>
+                  <span class="info-value">${contractData.companyName}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">RUC:</span>
+                  <span class="info-value">${contractData.companyRUC}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">País:</span>
+                  <span class="info-value">
+                    <span class="badge badge-success">Perú 🇵🇪</span>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div class="section">
-            <h3>DETALLES DEL PRÉSTAMO</h3>
-            <p><span class="label">Monto del Préstamo:</span> <span class="value">${contractData.loanAmount} ETH</span></p>
-            <p><span class="label">Tasa de Interés:</span> <span class="value">${(contractData.interestRate * 100).toFixed(2)}%</span></p>
-            <p><span class="label">Monto Total a Pagar:</span> <span class="value">${contractData.totalAmount.toFixed(4)} ETH</span></p>
-            <p><span class="label">Duración del Préstamo:</span> <span class="value">${contractData.loanDuration} días</span></p>
-            <p><span class="label">Red de Ethereum:</span> <span class="value">${contractData.network}</span></p>
+          <!-- DETALLES DEL PRÉSTAMO -->
+          <div class="two-columns">
+            <div class="section">
+              <div class="section-title">⏰ PLAZOS Y FECHAS</div>
+              <div class="section-content">
+                <div class="info-row">
+                  <span class="info-label">Duración:</span>
+                  <span class="info-value">${contractData.loanDuration} días</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Fecha Solicitud:</span>
+                  <span class="info-value">${contractData.createdAt.toLocaleDateString('es-PE')}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Fecha Aprobación:</span>
+                  <span class="info-value">${contractData.approvedAt ? contractData.approvedAt.toLocaleDateString('es-PE') : 'Pendiente'}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Vencimiento:</span>
+                  <span class="info-value">
+                    <span class="badge badge-warning">
+                      ${new Date(contractData.createdAt.getTime() + (contractData.loanDuration || 30) * 24 * 60 * 60 * 1000).toLocaleDateString('es-PE')}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="section">
+              <div class="section-title">🎯 PROPÓSITO DEL PRÉSTAMO</div>
+              <div class="section-content" style="padding: 8px;">
+                <p style="font-size: 9px; line-height: 1.5;">
+                  ${contractData.purpose}
+                </p>
+              </div>
+            </div>
           </div>
           
-          <div class="section">
-            <h3>PROPÓSITO DEL PRÉSTAMO</h3>
-            <p>${contractData.purpose}</p>
-          </div>
-          
-          <div class="section">
-            <h3>REGISTRO DE TRANSACCIONES</h3>
-            <p>${contractData.events || 'Sin transacciones registradas'}</p>
-          </div>
-          
-          <div class="qr-code">
-            <p><strong>Código QR del Contrato:</strong></p>
-            <img src="${contractData.qrCode}" alt="Código QR del Contrato" />
-            <div style="font-size: 11px; color: #666; margin-top: 15px; text-align: left;">
-              <p><strong>Datos incluidos en el QR:</strong></p>
-              <ul style="margin: 5px 0; padding-left: 20px;">
-                <li>ID del Contrato: ${contractData.contractId}</li>
-                <li>Prestatario: ${contractData.borrowerName}</li>
-                <li>Wallet: ${contractData.borrowerAddress.substring(0, 10)}...</li>
-                <li>Monto: ${contractData.loanAmount} ETH</li>
-                <li>Red: ${contractData.network}</li>
+          <!-- VERIFICACIÓN CON QR -->
+          <div class="verification-section">
+            <div class="qr-container">
+              <img src="${contractData.qrCode}" alt="QR Verificación" />
+              <p>ESCANEAR PARA VERIFICAR</p>
+            </div>
+            <div class="verification-info">
+              <h4>🔒 VERIFICACIÓN DE AUTENTICIDAD</h4>
+              <ul>
+                <li>ID Contrato: ${contractData.contractId}</li>
+                <li>Cliente: ${contractData.borrowerName}</li>
+                <li>Monto: ${contractData.loanAmount} ETH en ${contractData.network.toUpperCase()}</li>
                 <li>Empresa: ${contractData.companyName}</li>
-                <li>RUC: ${contractData.companyRUC}</li>
-                <li>Fecha: ${contractData.createdAt.toLocaleDateString()}</li>
-                <li>Verificación: MT-${contractData.contractId}-${Date.now()}</li>
+                <li>Código Verificación: MT-${contractData.contractId}-${Date.now()}</li>
               </ul>
-              <p style="margin-top: 10px;"><strong>Escanea para verificar autenticidad del contrato</strong></p>
+              <p style="font-size: 7px; color: #667eea; margin-top: 6px; font-weight: 600;">
+                ✓ Este contrato está registrado en blockchain y es verificable mediante el código QR
+              </p>
             </div>
           </div>
           
-          <div class="signature">
-            <div class="signature-column">
-              <p><strong>Firma del Prestatario:</strong></p>
+          <!-- TÉRMINOS Y CONDICIONES -->
+          <div class="terms-section">
+            <h4>📜 TÉRMINOS Y CONDICIONES</h4>
+            <ul>
+              <li>El PRESTATARIO se compromete a devolver <strong>${contractData.totalAmount.toFixed(4)} ETH</strong> (incluyendo interés del ${(contractData.interestRate * 100).toFixed(1)}%) en un plazo de <strong>${contractData.loanDuration} días</strong>.</li>
+              <li>La transacción se realizará en la red <strong>${contractData.network.toUpperCase()}</strong> de Ethereum.</li>
+              <li>En caso de incumplimiento, se aplicarán las cláusulas establecidas en el contrato marco de ${APP_CONSTANTS.COMPANY_NAME}.</li>
+              <li>Este contrato es legalmente vinculante y está respaldado por tecnología blockchain.</li>
+            </ul>
+          </div>
+          
+          <!-- FIRMAS -->
+          <div class="signatures">
+            <div class="signature-box">
               <div class="signature-line">
-                ${contractData.borrowerName}
+                <div class="signature-name">${contractData.borrowerName}</div>
+                <div class="signature-role">Prestatario (Cliente)</div>
               </div>
             </div>
-            <div class="signature-column">
-              <p><strong>Firma del Prestamista:</strong></p>
+            <div class="signature-box">
               <div class="signature-line">
-                ${APP_CONSTANTS.COMPANY_NAME}
+                <div class="signature-name">${APP_CONSTANTS.COMPANY_NAME}</div>
+                <div class="signature-role">Prestamista (Empresa)</div>
               </div>
             </div>
           </div>
           
+          <!-- FOOTER -->
           <div class="footer">
-            <p>Este contrato es un acuerdo legal entre ${APP_CONSTANTS.COMPANY_NAME} y ${contractData.borrowerName}.</p>
-            <p>Fecha de generación: ${new Date().toLocaleString()}</p>
+            <p>Este documento es un contrato legal generado automáticamente por ${APP_CONSTANTS.COMPANY_NAME} | Fecha de generación: ${new Date().toLocaleString('es-PE')}</p>
+            <p>Para consultas: contacto@microtrust.edu.pe | RUC: ${APP_CONSTANTS.COMPANY_RUC}</p>
           </div>
         </div>
       </body>

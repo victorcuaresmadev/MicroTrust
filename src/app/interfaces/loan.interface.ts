@@ -2,10 +2,11 @@ export interface LoanRequest {
   id: string;
   borrowerName: string;
   borrowerAddress: string;
-  amount: number;
+  amount: number; // Monto que RECIBE el prestatario (sin interés)
+  totalAmountToPay: number; // Monto que DEBE DEVOLVER (amount + interés)
   purpose: string;
   purposeType: 'student' | 'business' | 'health' | 'events' | 'other';
-  network: 'goerli' | 'holesky' | 'sepolia' | 'ephemery';
+  network: 'goerli' | 'holesky' | 'sepolia' | 'hoodi' | 'ephemery';
   interestRate: number;
   status: 'pending' | 'approved' | 'rejected' | 'disbursed' | 'payment_pending' | 'paid'; // Agregamos nuevos estados
   createdAt: Date;
